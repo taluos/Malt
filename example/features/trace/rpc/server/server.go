@@ -1,13 +1,13 @@
 package main
 
 import (
-	"Malt/example/features/trace/rpc/service"
-	pb "Malt/example/proto"
-	"Malt/pkg/log"
-	rpcserver "Malt/server/rpc/rpcServer"
-
 	"context"
 	"time"
+
+	"Malt/example/features/trace/rpc/service"
+	pb "Malt/example/test_proto"
+	"Malt/pkg/log"
+	rpcserver "Malt/server/rpc/rpcServer"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -52,8 +52,6 @@ func rpcServerInit() *rpcserver.Server {
 		rpcserver.WithAddress("127.0.0.1:50051"),
 		rpcserver.WithTimeout(5*time.Second),
 		rpcserver.WithEnableTracing(true),
-		//rpcserver.WithUnaryInterceptors(otelgrpc.UnaryServerInterceptor()),
-		//rpcserver.WithOptions(grpc.StatsHandler(otelgrpc.NewServerHandler())),
 	)
 
 	// 注册服务

@@ -57,6 +57,12 @@ func NewServer(opts ...ServerOptions) *Server {
 		serverinterceptors.UnaryRecoverInterceptor,
 		serverinterceptors.UnaryTimeoutInterceptor(o.timeout),
 	}
+
+	if o.enableMetrics {
+		uraryInts = append(uraryInts,
+			serverinterceptors.UnaryPrometheusInterceptor(o.histogramVecOpts, o.counterVecOpts))
+	}
+
 	if len(o.unaryInterceptors) > 0 {
 		uraryInts = append(uraryInts, o.unaryInterceptors...)
 	}
@@ -82,10 +88,11 @@ func NewServer(opts ...ServerOptions) *Server {
 		grpcOptions = append(grpcOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	}
 
-	if o.enableMetrics {
-		grpcOptions = append(grpcOptions, grpc.UnaryInterceptor(
-			serverinterceptors.UnaryPrometheusInterceptor(o.histogramVecOpts, o.counterVecOpts)))
-	}
+	// 删除或注释掉这段代码
+	// if o.enableMetrics {
+	//     grpcOptions = append(grpcOptions, grpc.UnaryInterceptor(
+	//         serverinterceptors.UnaryPrometheusInterceptor(o.histogramVecOpts, o.counterVecOpts)))
+	// }
 
 	s := &Server{
 		opt: o,

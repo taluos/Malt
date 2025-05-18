@@ -1,21 +1,20 @@
 package main
 
 import (
-	agent "Malt/core/trace"
-	httpserver "Malt/server/rest/httpServer"
 	"context"
 	"log"
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	agent "Malt/core/trace"
+	httpserver "Malt/server/rest/httpServer"
 
+	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
 	mysql "gorm.io/driver/mysql"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"

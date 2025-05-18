@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	pb "Malt/example/proto"
+	pb "Malt/example/test_proto"
 	rpcclient "Malt/server/rpc/rpcClient"
 )
 
