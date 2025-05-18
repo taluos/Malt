@@ -1,6 +1,6 @@
 package stringx
 
-import "Malt/pkg/lang"
+import "github.com/taluos/Malt/pkg/lang"
 
 const defaultMask = '*'
 

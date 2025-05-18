@@ -7,10 +7,13 @@ import (
 	"syscall"
 	"time"
 
-	"Malt/example/features/metrics/rpc/service"
-	pb "Malt/example/test_proto"
-	"Malt/pkg/log"
-	rpcserver "Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+
+	"github.com/taluos/Malt/pkg/log"
+
+	pb "github.com/taluos/Malt/example/test_proto"
+
+	"github.com/taluos/Malt/example/features/metrics/rpc/service"
 )
 
 func rpcServerInit() *rpcserver.Server {
@@ -60,10 +63,10 @@ func main() {
 	// 等待退出信号
 	<-quit
 	log.Info("Received shutdown signal")
-	
+
 	// 取消上下文，触发服务停止
 	cancel()
-	
+
 	// 优雅关闭服务器
 	if err := rpcStop(rpcServer, context.Background()); err != nil {
 		log.Errorf("Failed to stop RPC server: %v", err)

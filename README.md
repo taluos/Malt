@@ -26,7 +26,7 @@ go get github.com/taluos/Malt
 package main
 
 import (
-    "Malt/server/rest/httpServer"
+    "github.com/taluos/Malt/server/rest/httpServer"
     "context"
     "github.com/gin-gonic/gin"
 )
@@ -55,7 +55,7 @@ func main() {
 package main
 
 import (
-    "Malt/server/rpc/rpcServer"
+    "github.com/taluos/Malt/server/rpc/rpcServer"
     "context"
 )
 

@@ -1,9 +1,10 @@
 package clientinterceptors
 
 import (
-	metric "Malt/core/metrics"
 	"context"
 	"time"
+
+	metric "github.com/taluos/Malt/core/metrics"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"

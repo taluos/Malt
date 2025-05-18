@@ -3,7 +3,7 @@ package mathx
 import (
 	"testing"
 
-	"Malt/pkg/stringx"
+	"github.com/taluos/Malt/pkg/stringx"
 
 	"github.com/stretchr/testify/assert"
 )

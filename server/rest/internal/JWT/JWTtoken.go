@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

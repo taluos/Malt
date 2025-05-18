@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	"Malt/pkg/errors"
-	"Malt/pkg/log"
-	"Malt/server/rest/internal/pprof"
-	"Malt/server/rest/internal/validations"
+	"github.com/taluos/Malt/server/rest/internal/validations"
+
+	"github.com/taluos/Malt/server/rest/internal/pprof"
+
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 	uTranslator "github.com/go-playground/universal-translator"

@@ -3,8 +3,9 @@ package httpserver
 import (
 	"reflect"
 
-	"Malt/pkg/errors"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"

@@ -3,10 +3,13 @@ package auth
 import (
 	"time"
 
-	"Malt/pkg/core"
-	"Malt/pkg/errors"
-	"Malt/pkg/errors/code"
-	cosjwt "Malt/server/rest/internal/JWT"
+	cosjwt "github.com/taluos/Malt/server/rest/internal/JWT"
+
+	"github.com/taluos/Malt/pkg/errors/code"
+
+	"github.com/taluos/Malt/pkg/errors"
+
+	"github.com/taluos/Malt/pkg/core"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"

@@ -2,9 +2,11 @@
 package auth
 
 import (
-	rpcmetadata "Malt/api/rpcmetadata"
-	"Malt/pkg/errors"
-	"Malt/pkg/errors/code"
+	"github.com/taluos/Malt/pkg/errors/code"
+
+	"github.com/taluos/Malt/pkg/errors"
+
+	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
 
 	"strings"
 	"time"

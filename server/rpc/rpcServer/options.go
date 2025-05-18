@@ -1,13 +1,13 @@
 package rpcserver
 
 import (
-	"Malt/api/metadata"
-	metric "Malt/core/metrics"
-	"Malt/server/rpc/internal/auth"
-
 	"net"
 	"net/url"
 	"time"
+
+	"github.com/taluos/Malt/api/metadata"
+	metric "github.com/taluos/Malt/core/metrics"
+	"github.com/taluos/Malt/server/rpc/internal/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"

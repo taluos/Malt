@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 // Use assertions to ensure that the Registry struct implements the registry.Registrar and registry.Discovery interfaces.

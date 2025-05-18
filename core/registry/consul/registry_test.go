@@ -16,7 +16,7 @@ import (
 
 	"github.com/hashicorp/consul/api"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 const (

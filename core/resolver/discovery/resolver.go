@@ -7,12 +7,15 @@
 package discovery
 
 import (
-	"Malt/core/registry"
-	"Malt/pkg/errors"
-	"Malt/pkg/log"
 	"encoding/json"
 	"net/url"
 	"strconv"
+
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/pkg/errors"
+
+	"github.com/taluos/Malt/core/registry"
 
 	"context"
 	"time"

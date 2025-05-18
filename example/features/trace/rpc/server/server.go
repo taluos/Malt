@@ -4,10 +4,13 @@ import (
 	"context"
 	"time"
 
-	"Malt/example/features/trace/rpc/service"
-	pb "Malt/example/test_proto"
-	"Malt/pkg/log"
-	rpcserver "Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+
+	"github.com/taluos/Malt/pkg/log"
+
+	pb "github.com/taluos/Malt/example/test_proto"
+
+	"github.com/taluos/Malt/example/features/trace/rpc/service"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"

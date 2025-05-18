@@ -3,7 +3,7 @@ package etcd
 import (
 	"encoding/json"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 func marshal(si *registry.ServiceInstance) (string, error) {

@@ -7,10 +7,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
 
-	"Malt/pkg/errors"
-	"Malt/pkg/errors/code"
-	"Malt/pkg/log"
-	"Malt/server/rpc/internal/auth"
+	"github.com/taluos/Malt/server/rpc/internal/auth"
+
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/pkg/errors/code"
+
+	"github.com/taluos/Malt/pkg/errors"
 )
 
 func SteamAuthorizeInterceptor(keyFunc jwt.Keyfunc, authenticator *auth.Authenticator) grpc.StreamServerInterceptor {

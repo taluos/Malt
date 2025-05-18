@@ -12,8 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"Malt/core/registry"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/core/registry"
 
 	"github.com/hashicorp/consul/api"
 )

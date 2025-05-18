@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	rpcserver "Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
 
 	"github.com/stretchr/testify/assert"
 )

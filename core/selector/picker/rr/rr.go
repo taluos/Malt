@@ -4,8 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"Malt/core/selector"
-	"Malt/core/selector/picker/node/direct"
+	"github.com/taluos/Malt/core/selector/picker/node/direct"
+
+	"github.com/taluos/Malt/core/selector"
 )
 
 const (

@@ -1,12 +1,14 @@
 package exporter
 
 import (
-	fileExp "Malt/core/trace/exporter/file"
-	jaegerExp "Malt/core/trace/exporter/jaeger"
-	otelExp "Malt/core/trace/exporter/otel"
-	collectorExp "Malt/core/trace/exporter/otelCollector"
-	zipkinExp "Malt/core/trace/exporter/zipkin"
-	"Malt/pkg/errors"
+	otelExp "github.com/taluos/Malt/core/trace/exporter/otel"
+	collectorExp "github.com/taluos/Malt/core/trace/exporter/otelCollector"
+	zipkinExp "github.com/taluos/Malt/core/trace/exporter/zipkin"
+	"github.com/taluos/Malt/pkg/errors"
+
+	jaegerExp "github.com/taluos/Malt/core/trace/exporter/jaeger"
+
+	fileExp "github.com/taluos/Malt/core/trace/exporter/file"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"

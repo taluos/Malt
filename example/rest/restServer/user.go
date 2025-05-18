@@ -1,7 +1,7 @@
 package restserver
 
 import (
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
 
 	"github.com/gin-gonic/gin"
 )

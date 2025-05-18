@@ -2,7 +2,7 @@
 package jaeger
 
 import (
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"net/url"
 

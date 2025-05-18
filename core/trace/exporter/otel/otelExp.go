@@ -1,8 +1,9 @@
 package otel
 
 import (
-	"Malt/pkg/errors"
 	"context"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"

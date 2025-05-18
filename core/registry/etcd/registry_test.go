@@ -10,7 +10,7 @@ import (
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 func TestRegistry(t *testing.T) {

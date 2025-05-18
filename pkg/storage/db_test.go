@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"Malt/pkg/storage/models"
 	"fmt"
+
+	"github.com/taluos/Malt/pkg/storage/models"
 
 	"os"
 	"testing"

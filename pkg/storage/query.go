@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"Malt/pkg/storage/models"
 	"time"
+
+	"github.com/taluos/Malt/pkg/storage/models"
 )
 
 type QueryOptions struct {

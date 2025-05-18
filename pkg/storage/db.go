@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"os"
 

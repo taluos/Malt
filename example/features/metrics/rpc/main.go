@@ -1,11 +1,12 @@
 package main
 
 import (
-	rpcclient "Malt/example/features/metrics/rpc/client"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	rpcclient "github.com/taluos/Malt/example/features/metrics/rpc/client"
 )
 
 func main() {

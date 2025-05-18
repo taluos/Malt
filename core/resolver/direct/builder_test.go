@@ -1,9 +1,10 @@
 package direct
 
 import (
-	"Malt/pkg/errors"
 	"net/url"
 	"testing"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

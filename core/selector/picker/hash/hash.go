@@ -1,10 +1,12 @@
 package hash
 
 import (
-	"Malt/core/selector"
-	"Malt/core/selector/picker/node/direct"
 	"context"
 	"hash/crc32"
+
+	"github.com/taluos/Malt/core/selector/picker/node/direct"
+
+	"github.com/taluos/Malt/core/selector"
 )
 
 const (

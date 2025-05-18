@@ -3,7 +3,7 @@ package selector
 import (
 	"context"
 
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 )
 
 // ErrNoAvailable is no available node.

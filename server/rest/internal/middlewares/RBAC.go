@@ -1,8 +1,9 @@
 package middleware
 
 import (
-	"Malt/pkg/log"
-	rbac "Malt/server/rest/internal/RBAC"
+	rbac "github.com/taluos/Malt/server/rest/internal/RBAC"
+
+	"github.com/taluos/Malt/pkg/log"
 
 	"github.com/gin-gonic/gin"
 )

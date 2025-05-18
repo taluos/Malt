@@ -3,9 +3,11 @@ package auth
 import (
 	"strings"
 
-	"Malt/pkg/core"
-	"Malt/pkg/errors"
-	"Malt/pkg/errors/code"
+	"github.com/taluos/Malt/pkg/errors/code"
+
+	"github.com/taluos/Malt/pkg/errors"
+
+	"github.com/taluos/Malt/pkg/core"
 
 	"github.com/gin-gonic/gin"
 )

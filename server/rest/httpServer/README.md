@@ -22,7 +22,7 @@ package main
 
 import (
     "context"
-    "Malt/server/rest/httpServer"
+    "github.com/taluos/Malt/server/rest/httpServer"
     "github.com/gin-gonic/gin"
 )
 

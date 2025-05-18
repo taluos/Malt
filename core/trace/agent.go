@@ -1,9 +1,11 @@
 package trace
 
 import (
-	"Malt/core/trace/exporter"
-	"Malt/pkg/errors"
 	"sync"
+
+	"github.com/taluos/Malt/pkg/errors"
+
+	"github.com/taluos/Malt/core/trace/exporter"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"

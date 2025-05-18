@@ -1,9 +1,11 @@
 package rpcserver
 
 import (
-	pb "Malt/example/proto"
-	"Malt/example/rpc/service"
-	rpcserver "Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+
+	pb "github.com/taluos/Malt/example/test_proto"
+
+	"github.com/taluos/Malt/example/rpc/service"
 
 	"context"
 	"log"

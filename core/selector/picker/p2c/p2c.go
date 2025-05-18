@@ -7,8 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"Malt/core/selector"
-	"Malt/core/selector/picker/node/ewma"
+	"github.com/taluos/Malt/core/selector/picker/node/ewma"
+
+	"github.com/taluos/Malt/core/selector"
 )
 
 const (

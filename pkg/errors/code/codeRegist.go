@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"Malt/pkg/errors"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/novalagung/gubrak"
 )

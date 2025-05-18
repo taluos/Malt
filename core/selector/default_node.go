@@ -3,7 +3,7 @@ package selector
 import (
 	"strconv"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 // DefaultNode is selector node

@@ -8,8 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	pb "Malt/example/test_proto"
-	rpcclient "Malt/server/rpc/rpcClient"
+	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
+
+	pb "github.com/taluos/Malt/example/test_proto"
 )
 
 // Run 启动 gRPC 客户端并优雅关闭

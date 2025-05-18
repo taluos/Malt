@@ -11,7 +11,7 @@ import (
 	"sort"
 	"sync"
 
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

@@ -1,8 +1,9 @@
 package discovery
 
 import (
-	"Malt/core/registry"
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
+
+	"github.com/taluos/Malt/core/registry"
 
 	"context"
 	"strings"

@@ -1,10 +1,13 @@
 package main
 
 import (
-	malt "Malt"
-	restserver "Malt/example/rest/restServer"
-	rpcserver "Malt/example/rpc/rpcServer"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	rpcserver "github.com/taluos/Malt/example/rpc/rpcServer"
+
+	restserver "github.com/taluos/Malt/example/rest/restServer"
+
+	malt "github.com/taluos/Malt"
 
 	"context"
 	"os"

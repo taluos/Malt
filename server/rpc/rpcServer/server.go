@@ -1,14 +1,14 @@
 package rpcserver
 
 import (
-	"Malt/api/metadata"
-	"Malt/pkg/host"
-	"Malt/pkg/log"
-	"Malt/server/rpc/internal/serverinterceptors"
 	"context"
-
 	"net"
 	"net/url"
+
+	"github.com/taluos/Malt/api/metadata"
+	"github.com/taluos/Malt/pkg/host"
+	"github.com/taluos/Malt/pkg/log"
+	"github.com/taluos/Malt/server/rpc/internal/serverinterceptors"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"

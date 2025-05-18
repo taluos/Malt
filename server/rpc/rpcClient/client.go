@@ -1,10 +1,13 @@
 package rpcclient
 
 import (
-	"Malt/core/resolver/direct"
-	"Malt/core/resolver/discovery"
-	"Malt/pkg/log"
-	"Malt/server/rpc/internal/clientinterceptors"
+	"github.com/taluos/Malt/server/rpc/internal/clientinterceptors"
+
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/core/resolver/discovery"
+
+	"github.com/taluos/Malt/core/resolver/direct"
 
 	"context"
 

@@ -7,9 +7,11 @@ import (
 	"context"
 	"runtime/debug"
 
-	"Malt/pkg/errors"
-	"Malt/pkg/errors/code"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/pkg/errors/code"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"google.golang.org/grpc"
 )

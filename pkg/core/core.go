@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 )

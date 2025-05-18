@@ -1,7 +1,7 @@
 package direct
 
 import (
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"strings"
 

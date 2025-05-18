@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	pb "Malt/example/proto"
+	pb "github.com/taluos/Malt/example/test_proto"
 )
 
 // GreeterServer 实现 Greeter 服务

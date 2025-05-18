@@ -1,8 +1,9 @@
 package main
 
 import (
-	rpcclient "Malt/example/features/trace/rpc/client"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	rpcclient "github.com/taluos/Malt/example/features/trace/rpc/client"
 
 	"encoding/json"
 	"sync"

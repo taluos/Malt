@@ -3,7 +3,7 @@ package consul
 import (
 	"context"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 // Use assertions to ensure that the watcher struct implements the registry.Watcher interface.

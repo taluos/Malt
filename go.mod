@@ -1,4 +1,4 @@
-module Malt
+module github.com/taluos/Malt
 
 go 1.24.1
 

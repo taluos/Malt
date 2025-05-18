@@ -1,9 +1,10 @@
 package main
 
 import (
-	httpserver "Malt/server/rest/httpServer"
 	"context"
 	"log"
+
+	httpserver "github.com/taluos/Malt/server/rest/httpServer"
 
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"

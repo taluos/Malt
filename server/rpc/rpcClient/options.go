@@ -1,8 +1,8 @@
 package rpcclient
 
 import (
-	metric "Malt/core/metrics"
-	"Malt/core/registry"
+	metric "github.com/taluos/Malt/core/metrics"
+	"github.com/taluos/Malt/core/registry"
 
 	"time"
 

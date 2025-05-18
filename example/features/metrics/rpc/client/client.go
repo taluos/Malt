@@ -1,9 +1,11 @@
 package client
 
 import (
-	pb "Malt/example/test_proto"
-	rpcclient "Malt/server/rpc/rpcClient"
 	"time"
+
+	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
+
+	pb "github.com/taluos/Malt/example/test_proto"
 
 	"context"
 	"log"

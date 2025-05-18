@@ -1,13 +1,14 @@
 package main
 
 import (
-	restserver "Malt/example/rest/restServer"
 	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	restserver "github.com/taluos/Malt/example/rest/restServer"
 )
 
 func main() {

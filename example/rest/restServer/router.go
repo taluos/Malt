@@ -1,7 +1,7 @@
 package restserver
 
 import (
-	restserver "Malt/server/rest/httpServer"
+	restserver "github.com/taluos/Malt/server/rest/httpServer"
 )
 
 func InitRouter(g *restserver.Server) {

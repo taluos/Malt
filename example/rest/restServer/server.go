@@ -3,7 +3,7 @@ package restserver
 import (
 	"context"
 
-	httpserver "Malt/server/rest/httpServer"
+	httpserver "github.com/taluos/Malt/server/rest/httpServer"
 
 	"github.com/gin-gonic/gin"
 )

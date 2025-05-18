@@ -1,11 +1,13 @@
 package auth
 
 import (
-	cosjwt "Malt/server/rest/internal/JWT"
+	cosjwt "github.com/taluos/Malt/server/rest/internal/JWT"
 
-	"Malt/pkg/errors"
-	"Malt/pkg/errors/code"
-	casbin "Malt/server/rest/internal/RBAC/Casbin"
+	casbin "github.com/taluos/Malt/server/rest/internal/RBAC/Casbin"
+
+	"github.com/taluos/Malt/pkg/errors/code"
+
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"

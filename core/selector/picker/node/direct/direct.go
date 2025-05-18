@@ -5,7 +5,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"Malt/core/selector"
+	"github.com/taluos/Malt/core/selector"
 )
 
 const (

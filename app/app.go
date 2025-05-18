@@ -8,8 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"Malt/core/registry"
-	"Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/log"
+
+	"github.com/taluos/Malt/core/registry"
 
 	"github.com/google/uuid"
 )

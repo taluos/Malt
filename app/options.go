@@ -5,8 +5,9 @@ import (
 	"os"
 	"time"
 
-	"Malt/core/registry"
-	rpcserver "Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+
+	"github.com/taluos/Malt/core/registry"
 )
 
 type options struct {

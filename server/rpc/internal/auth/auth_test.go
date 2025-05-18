@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	rpcmetadata "Malt/api/rpcmetadata"
+	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/stretchr/testify/assert"

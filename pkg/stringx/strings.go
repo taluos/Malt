@@ -4,7 +4,7 @@ import (
 	"errors"
 	"unicode"
 
-	"Malt/pkg/lang"
+	"github.com/taluos/Malt/pkg/lang"
 )
 
 var (

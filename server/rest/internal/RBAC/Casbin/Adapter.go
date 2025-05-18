@@ -2,7 +2,7 @@
 package casbin
 
 import (
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"github.com/casbin/casbin/v2"
 	gormadapter "github.com/casbin/gorm-adapter/v3"

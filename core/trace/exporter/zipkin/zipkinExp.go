@@ -1,7 +1,7 @@
 package zipkin
 
 import (
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"go.opentelemetry.io/otel/exporters/zipkin"
 )

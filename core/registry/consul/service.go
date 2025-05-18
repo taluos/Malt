@@ -5,7 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 type serviceSet struct {

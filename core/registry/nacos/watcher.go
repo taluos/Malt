@@ -8,7 +8,7 @@ import (
 	"github.com/nacos-group/nacos-sdk-go/model"
 	"github.com/nacos-group/nacos-sdk-go/vo"
 
-	"Malt/core/registry"
+	"github.com/taluos/Malt/core/registry"
 )
 
 var _ registry.Watcher = (*watcher)(nil)

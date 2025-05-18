@@ -3,7 +3,7 @@
 package serverinterceptors
 
 import (
-	"Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"context"
 	"fmt"

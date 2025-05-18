@@ -6,8 +6,9 @@ import (
 	"os"
 	"time"
 
-	agent "Malt/core/trace"
-	httpserver "Malt/server/rest/httpServer"
+	httpserver "github.com/taluos/Malt/server/rest/httpServer"
+
+	agent "github.com/taluos/Malt/core/trace"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
