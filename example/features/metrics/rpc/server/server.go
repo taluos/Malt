@@ -7,13 +7,10 @@ import (
 	"syscall"
 	"time"
 
-	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
-
-	"github.com/taluos/Malt/pkg/log"
-
-	pb "github.com/taluos/Malt/example/test_proto"
-
 	"github.com/taluos/Malt/example/features/metrics/rpc/service"
+	pb "github.com/taluos/Malt/example/test_proto"
+	"github.com/taluos/Malt/pkg/log"
+	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
 )
 
 func rpcServerInit() *rpcserver.Server {

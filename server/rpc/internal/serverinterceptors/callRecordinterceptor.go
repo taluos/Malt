@@ -7,11 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/taluos/Malt/pkg/storage/models"
-
-	"github.com/taluos/Malt/pkg/storage"
-
 	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/storage"
+	"github.com/taluos/Malt/pkg/storage/models"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"

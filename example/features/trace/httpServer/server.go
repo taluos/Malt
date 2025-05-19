@@ -6,9 +6,8 @@ import (
 	"os"
 	"time"
 
-	httpserver "github.com/taluos/Malt/server/rest/httpServer"
-
 	agent "github.com/taluos/Malt/core/trace"
+	httpserver "github.com/taluos/Malt/server/rest/httpServer"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
@@ -43,12 +42,12 @@ type User struct {
 	Role     int        `gorm:"column:role;default:1;type:int"`
 }
 
-func NewTracerProvider() *traceSDK.TracerProvider {
+func NewTracerProvider(name string) *traceSDK.TracerProvider {
 
-	agentOpt := agent.NewAgent("test http server", "http://localhost:4318", "ratio", 1.0, "collector",
+	agentOpt := agent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
 		agent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceNameKey.String("test http server"),
+			semconv.ServiceNameKey.String(name),
 			attribute.String("env", "test"),
 		))),
 	)
@@ -59,7 +58,7 @@ func NewTracerProvider() *traceSDK.TracerProvider {
 
 func main() {
 
-	_ = NewTracerProvider()
+	_ = NewTracerProvider("HTTP Server")
 
 	r := httpserver.NewServer(
 		httpserver.WithPort(8080),
@@ -76,7 +75,7 @@ func main() {
 
 func Server(c *gin.Context) {
 
-	tp := NewTracerProvider()
+	tp := NewTracerProvider("HTTP Server")
 	defer tp.Shutdown(context.Background())
 
 	time.Sleep(time.Second * 1)
@@ -86,7 +85,7 @@ func Server(c *gin.Context) {
 
 func Gorm(c *gin.Context) {
 
-	tp := NewTracerProvider()
+	tp := NewTracerProvider("Gorm Server")
 	defer tp.Shutdown(context.Background())
 
 	dns := "root:root@tcp(192.168.142.137:3306)/shop?charset=utf8mb4&parseTime=True&loc=Local"

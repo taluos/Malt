@@ -1,57 +1,38 @@
 package client
 
 import (
-	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
-
-	pb "github.com/taluos/Malt/example/test_proto"
-
 	"context"
 	"log"
 	"time"
 
-	"go.opentelemetry.io/otel"
+	agent "github.com/taluos/Malt/core/trace"
+	pb "github.com/taluos/Malt/example/test_proto"
+	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
+
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 )
 
-var (
-	tp *traceSDK.TracerProvider
-)
+func NewTracerProvider(name string) *traceSDK.TracerProvider {
 
-func NewTracerProvider(url string) {
-	collectorURL := "http://localhost:4318" // Collector 的默认 OTLP HTTP 端点
-	jexp, err := otlptracehttp.New(context.Background(),
-		otlptracehttp.WithEndpointURL(collectorURL),
+	agentOpt := agent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
+		agent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(name),
+			attribute.String("env", "test"),
+		))),
 	)
-	//jexp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
-	// fmt.Println(jexp)
-	if err != nil {
-		panic(err)
-	}
 
-	tp = traceSDK.NewTracerProvider(
-		traceSDK.WithBatcher(jexp),
-		traceSDK.WithResource(
-			resource.NewWithAttributes(
-				semconv.SchemaURL,
-				semconv.ServiceNameKey.String("test rpc client"),
-				attribute.String("env", "test"),
-			),
-		),
-	)
-	otel.SetTracerProvider(tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+	tp := agent.InitAgent(agentOpt)
+	return tp
 }
 
 // Run 启动 gRPC 客户端并优雅关闭
 func Run(ctx context.Context) error {
-	url := "http://192.168.142.140:14268/api/traces"
-
-	NewTracerProvider(url)
+	tp := NewTracerProvider("Rpc Client")
+	defer tp.Shutdown(context.Background())
 	tr := tp.Tracer("test")
 
 	spanCtx, span := tr.Start(ctx, "test")

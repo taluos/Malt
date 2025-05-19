@@ -11,10 +11,8 @@ import (
 func RestInit() *httpserver.Server {
 	srv := httpserver.NewServer(
 		httpserver.WithPort(8080),
-		// httpserver.WithMode("debug"),
-		httpserver.WithTrans("zh"),
+		httpserver.WithMode("debug"),
 		httpserver.WithHealthz(true),
-		httpserver.WithEnableProfiling(true),
 		httpserver.WithMiddleware(gin.Recovery()),
 	)
 

@@ -88,12 +88,6 @@ func NewServer(opts ...ServerOptions) *Server {
 		grpcOptions = append(grpcOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	}
 
-	// 删除或注释掉这段代码
-	// if o.enableMetrics {
-	//     grpcOptions = append(grpcOptions, grpc.UnaryInterceptor(
-	//         serverinterceptors.UnaryPrometheusInterceptor(o.histogramVecOpts, o.counterVecOpts)))
-	// }
-
 	s := &Server{
 		opt: o,
 	}
@@ -167,9 +161,6 @@ func (s *Server) Endpoint() (*url.URL, error) {
 	return s.opt.endpoint, nil
 }
 
-// ListenEndpoint 设置服务器的监听端点
-// 如果没有传入address就从listener中获取一个endpoint
-// ip 和 端口 的抽取
 func (s *Server) listenAndEndpoint() error {
 
 	// 如果用户已经设置了listener，则直接使用用户设置的listener

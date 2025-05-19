@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/taluos/Malt/pkg/log"
 
+	agent "github.com/taluos/Malt/core/trace"
 	rpcclient "github.com/taluos/Malt/example/features/trace/rpc/client"
 
 	"encoding/json"
@@ -14,50 +15,32 @@ import (
 	"github.com/valyala/fasthttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
+	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"golang.org/x/net/context"
 )
 
-var (
-	Tp *trace.TracerProvider
-)
+func NewTracerProvider(name string) *traceSDK.TracerProvider {
 
-func NewTracerProvider() (*trace.TracerProvider, error) { //url string
-	collectorURL := "http://localhost:4318" // Collector 的默认 OTLP HTTP 端点
-	jexp, err := otlptracehttp.New(context.Background(),
-		otlptracehttp.WithEndpointURL(collectorURL),
+	agentOpt := agent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
+		agent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceNameKey.String(name),
+			attribute.String("env", "test"),
+		))),
 	)
 
-	// jexp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
-	if err != nil {
-		panic(err)
-	}
-
-	Tp = trace.NewTracerProvider(
-		trace.WithBatcher(jexp),
-		trace.WithResource(
-			resource.NewWithAttributes(
-				semconv.SchemaURL,
-				semconv.ServiceNameKey.String("test"),
-				attribute.String("env", "test"),
-			),
-		),
-	)
-	otel.SetTracerProvider(Tp)
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-
-	return Tp, nil
+	tp := agent.InitAgent(agentOpt)
+	return tp
 }
 
 func main() {
 	// url := "http://192.168.142.140:14268/api/traces"
 	ctx, cancel := context.WithCancel(context.Background())
 
-	tp, _ := NewTracerProvider()
+	tp := NewTracerProvider("func main")
 
 	defer func(ctx context.Context) {
 		ctx, cancel = context.WithTimeout(ctx, time.Second*5)
@@ -100,8 +83,9 @@ func main() {
 
 func FuncA(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	tr := Tp.Tracer("Func A")
+	tp := NewTracerProvider("Func A")
+	defer tp.Shutdown(context.Background())
+	tr := tp.Tracer("Func A")
 	_, span := tr.Start(ctx, "Func A !!!!")
 	defer span.End()
 
@@ -129,8 +113,9 @@ func FuncA(ctx context.Context, wg *sync.WaitGroup) {
 // http
 func FuncB(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	tr := Tp.Tracer("Func B")
+	tp := NewTracerProvider("Func B")
+	defer tp.Shutdown(context.Background())
+	tr := tp.Tracer("Func B")
 
 	spanCtx, span := tr.Start(ctx, "Func B!!!!")
 
@@ -160,7 +145,8 @@ func FuncB(ctx context.Context, wg *sync.WaitGroup) {
 // rpc
 func FuncC(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-	tr := otel.Tracer("Func C")
+	tp := NewTracerProvider("Func C")
+	tr := tp.Tracer("Func C")
 
 	spanCtx, span := tr.Start(ctx, "Func C!!!!")
 
@@ -178,8 +164,9 @@ func FuncC(ctx context.Context, wg *sync.WaitGroup) {
 // gorm
 func FuncD(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
-
-	tr := Tp.Tracer("Func D")
+	tp := NewTracerProvider("Func D")
+	defer tp.Shutdown(context.Background())
+	tr := tp.Tracer("Func D")
 
 	spanCtx, span := tr.Start(ctx, "Func D!!!!")
 
@@ -210,8 +197,9 @@ func FuncD(ctx context.Context, wg *sync.WaitGroup) {
 func FuncE(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	tr := otel.Tracer("Func E")
-
+	tp := NewTracerProvider("Func E")
+	defer tp.Shutdown(context.Background())
+	tr := tp.Tracer("Func E")
 	spanCtx, span := tr.Start(ctx, "Func E!!!!")
 
 	redisDB := redis.NewClient(&redis.Options{

@@ -1,15 +1,12 @@
 package rpcclient
 
 import (
-	"github.com/taluos/Malt/server/rpc/internal/clientinterceptors"
-
-	"github.com/taluos/Malt/pkg/log"
-
-	"github.com/taluos/Malt/core/resolver/discovery"
+	"context"
 
 	"github.com/taluos/Malt/core/resolver/direct"
-
-	"context"
+	"github.com/taluos/Malt/core/resolver/discovery"
+	"github.com/taluos/Malt/pkg/log"
+	"github.com/taluos/Malt/server/rpc/internal/clientinterceptors"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"

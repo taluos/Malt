@@ -1,19 +1,16 @@
 package main
 
 import (
-	"github.com/taluos/Malt/pkg/log"
-
-	rpcserver "github.com/taluos/Malt/example/rpc/rpcServer"
-
-	restserver "github.com/taluos/Malt/example/rest/restServer"
-
-	malt "github.com/taluos/Malt"
-
 	"context"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	malt "github.com/taluos/Malt"
+	restserver "github.com/taluos/Malt/example/rest/restServer"
+	rpcserver "github.com/taluos/Malt/example/rpc/rpcServer"
+	"github.com/taluos/Malt/pkg/log"
 
 	"golang.org/x/sync/errgroup"
 )

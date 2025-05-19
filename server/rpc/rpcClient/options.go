@@ -1,10 +1,10 @@
 package rpcclient
 
 import (
+	"time"
+
 	metric "github.com/taluos/Malt/core/metrics"
 	"github.com/taluos/Malt/core/registry"
-
-	"time"
 
 	"google.golang.org/grpc"
 )

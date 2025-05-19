@@ -2,16 +2,13 @@
 package auth
 
 import (
-	"github.com/taluos/Malt/pkg/errors/code"
-
-	"github.com/taluos/Malt/pkg/errors"
-
-	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
-
+	"context"
 	"strings"
 	"time"
 
-	"context"
+	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
+	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors/code"
 
 	"github.com/golang-jwt/jwt/v5"
 )

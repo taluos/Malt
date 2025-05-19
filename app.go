@@ -1,4 +1,4 @@
-package app
+package Malt
 
 import (
 	"context"
@@ -6,28 +6,38 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
-
-	"github.com/taluos/Malt/pkg/log"
 
 	"github.com/taluos/Malt/core/registry"
+	"github.com/taluos/Malt/pkg/log"
 
 	"github.com/google/uuid"
 )
 
-type app struct {
-	opts options
+// AppInfo is application context value.
+type AppInfo interface {
+	ID() string
+	Name() string
+	Version() string
+	Metadata() map[string]string
+	Endpoint() []string
+}
+type App struct {
+	opts   options
+	ctx    context.Context
+	cancel context.CancelFunc
+
 	// 服务实例
 	instance *registry.ServiceInstance
 
 	mu sync.RWMutex
 }
 
-func New(opts ...Option) *app {
+func New(opts ...Option) *App {
 	o := options{
+		name:             defaultName,
 		signal:           []os.Signal{syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT},
-		registrarTimeout: 10 * time.Second,
-		stopTimeout:      10 * time.Second,
+		registrarTimeout: defalregistrarTimeout,
+		stopTimeout:      defaltTimeout,
 	}
 
 	if o.id == "" {
@@ -43,13 +53,36 @@ func New(opts ...Option) *app {
 		opt(&o)
 	}
 
-	return &app{
+	return &App{
 		opts: o,
 	}
 }
 
+func (a *App) ID() string {
+	return a.opts.id
+}
+
+func (a *App) Name() string {
+	return a.opts.name
+}
+
+func (a *App) Version() string {
+	return a.opts.version
+}
+
+func (a *App) Metadata() map[string]string {
+	return a.opts.metadata
+}
+
+func (a *App) Endpoint() []string {
+	if a.instance != nil {
+		return a.instance.Endpoints
+	}
+	return nil
+}
+
 // 服务启动
-func (app *app) Run() error {
+func (app *App) Run() error {
 	// 获取注册信息
 	instance, err := app.buildInstance()
 	if err != nil {
@@ -61,7 +94,7 @@ func (app *app) Run() error {
 	app.instance = instance
 	app.mu.Unlock()
 
-	// 注册服务
+	// register service
 	if app.opts.registrar != nil {
 		rctx, cancel := context.WithTimeout(context.Background(), app.opts.registrarTimeout)
 		defer cancel()
@@ -81,7 +114,7 @@ func (app *app) Run() error {
 }
 
 // 服务停止
-func (app *app) Stop() error {
+func (app *App) Stop() error {
 	app.mu.Lock()
 	instance := app.instance
 	app.mu.Unlock()
@@ -95,11 +128,16 @@ func (app *app) Stop() error {
 			return err
 		}
 	}
+
+	if app.cancel != nil {
+		app.cancel()
+	}
+
 	return nil
 }
 
 // 创建服务注册结构体
-func (app *app) buildInstance() (*registry.ServiceInstance, error) {
+func (app *App) buildInstance() (*registry.ServiceInstance, error) {
 	endpoints := make([]string, 0)
 	tags := make([]string, 0)
 

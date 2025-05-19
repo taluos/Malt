@@ -1,10 +1,11 @@
-package app
+package Malt
 
 import (
 	"net/url"
 	"os"
 	"time"
 
+	"github.com/taluos/Malt/pkg/log"
 	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
 
 	"github.com/taluos/Malt/core/registry"
@@ -17,13 +18,13 @@ type options struct {
 	tags      []string
 	version   string
 
-	signal []os.Signal
+	metadata map[string]string
+	signal   []os.Signal
 
-	// 允许用户自定义注册器
+	logger           log.Logger
 	registrar        registry.Registrar
 	registrarTimeout time.Duration
-
-	stopTimeout time.Duration
+	stopTimeout      time.Duration
 
 	rpcserver *rpcserver.Server
 }

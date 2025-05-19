@@ -18,9 +18,7 @@ func main() {
 
 	restserver.InitRouter(Server)
 
-	go func() {
-		restserver.RestRun(Server, context.Background())
-	}()
+	restserver.RestRun(Server, context.Background())
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

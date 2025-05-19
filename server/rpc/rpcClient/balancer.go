@@ -2,7 +2,6 @@ package rpcclient
 
 import (
 	"github.com/taluos/Malt/core/registry"
-
 	"github.com/taluos/Malt/core/selector"
 
 	"google.golang.org/grpc/balancer"

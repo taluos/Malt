@@ -1,10 +1,6 @@
 package restserver
 
-import (
-	"github.com/taluos/Malt/pkg/log"
-
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
 type userServer struct {
 }
@@ -14,5 +10,5 @@ func NewUserServer() *userServer {
 }
 
 func (u *userServer) GetUserInfo(ctx *gin.Context) {
-	log.Infof("get user info")
+	ctx.JSON(200, gin.H{"msg": ""})
 }
