@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	agent "github.com/taluos/Malt/core/trace"
+	maltAgent "github.com/taluos/Malt/core/trace"
 	"github.com/taluos/Malt/example/features/trace/rpc/service"
 	pb "github.com/taluos/Malt/example/test_proto"
 	"github.com/taluos/Malt/pkg/log"
@@ -14,21 +14,22 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
-func NewTracerProvider(name string) *traceSDK.TracerProvider {
+func NewTracerProvider(name string) *maltAgent.Agent {
 
-	agentOpt := agent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
-		agent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
+	agent := maltAgent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
+		maltAgent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(name),
 			attribute.String("env", "test"),
 		))),
 	)
 
-	tp := agent.InitAgent(agentOpt)
-	return tp
+	return agent
 }
+
 func rpcServerInit() *rpcserver.Server {
 	// 创建 gRPC Server，可根据需要自定义监听地址、超时时间等
 	s := rpcserver.NewServer(
@@ -56,18 +57,21 @@ func rpcStop(srv *rpcserver.Server, ctx context.Context) error {
 }
 
 func main() {
+	var err error
+	agent := NewTracerProvider("Rpc Server")
+	defer agent.Stop(context.Background())
+	tr := maltAgent.NewTracer(trace.SpanKindServer,
+		maltAgent.WithTracerProvider(agent.TracerProvider()),
+		maltAgent.WithTracerName("test server"),
+	)
 
-	tp := NewTracerProvider("Rpc Server")
-	defer tp.Shutdown(context.Background())
-	tr := tp.Tracer("test")
-
-	spanCtx, span := tr.Start(context.Background(), "test")
-	defer span.End()
+	spanCtx, span := tr.Start(context.Background(), "test", agent.Propagator(), nil)
+	defer tr.End(context.Background(), span, err)
 
 	rpcServer := rpcServerInit()
 
 	log.Info("RPC server starting")
-	err := rpcRun(rpcServer, spanCtx)
+	err = rpcRun(rpcServer, spanCtx)
 	if err != nil {
 		log.Fatalf("RPC server stopped with error: %v", err)
 	}

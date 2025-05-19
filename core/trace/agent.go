@@ -1,6 +1,7 @@
 package trace
 
 import (
+	"context"
 	"sync"
 
 	"github.com/taluos/Malt/pkg/errors"
@@ -10,7 +11,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
-	"go.opentelemetry.io/otel/sdk/trace"
+	sdkTrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
 )
 
@@ -20,6 +21,11 @@ type Agent struct {
 	SamplerMode string  `json:",optional,default=never,options=ratio|always|never"`
 	Sampler     float64 `json:",default=1.0"`
 	Batcher     string  `json:",default=jaeger,options=zipkin|jaeger|prometheus|otelgrpc|otelhttp|file"`
+
+	tp         *sdkTrace.TracerProvider
+	propagator propagation.TextMapPropagator
+	errHandler otel.ErrorHandler
+	mu         sync.Mutex
 
 	opt *telemetryOptions
 }
@@ -35,7 +41,7 @@ func NewAgent(name string, endpoint string, samplerMode string, sampler float64,
 		f(opt)
 	}
 
-	return &Agent{
+	agent := &Agent{
 		Name:        name,
 		Endpoint:    endpoint,
 		SamplerMode: samplerMode,
@@ -44,25 +50,22 @@ func NewAgent(name string, endpoint string, samplerMode string, sampler float64,
 
 		opt: opt,
 	}
-}
 
-func InitAgent(agent *Agent) *trace.TracerProvider {
-	lock.Lock()
-	defer lock.Unlock()
-
-	tp, err := agent.startAgent()
+	err := agent.startAgent()
 	if err != nil {
 		panic(err)
 	}
-	return tp
+
+	return agent
+
 }
 
-func (agent *Agent) startAgent() (*trace.TracerProvider, error) {
+func (agent *Agent) startAgent() error {
 	var (
-		exp trace.SpanExporter
+		exp sdkTrace.SpanExporter
 		err error
 
-		tracerOptions []trace.TracerProviderOption
+		tracerOptions []sdkTrace.TracerProviderOption
 	)
 
 	exporterConfig := exporter.ExportConfig{
@@ -78,35 +81,66 @@ func (agent *Agent) startAgent() (*trace.TracerProvider, error) {
 		agent.opt.otelHttpOptions,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	tracerOptions = append(tracerOptions,
-		trace.WithBatcher(exp),
-		trace.WithResource(resource.NewSchemaless(semconv.ServiceNameKey.String(agent.Name))),
+		sdkTrace.WithBatcher(exp),
+		sdkTrace.WithResource(resource.NewSchemaless(semconv.ServiceNameKey.String(agent.Name))),
 	)
 
 	switch agent.SamplerMode {
 	case "ratio":
-		tracerOptions = append(tracerOptions, trace.WithSampler(trace.TraceIDRatioBased(agent.Sampler)))
+		tracerOptions = append(tracerOptions, sdkTrace.WithSampler(sdkTrace.TraceIDRatioBased(agent.Sampler)))
 	case "always":
-		tracerOptions = append(tracerOptions, trace.WithSampler(trace.AlwaysSample()))
+		tracerOptions = append(tracerOptions, sdkTrace.WithSampler(sdkTrace.AlwaysSample()))
 	case "never":
-		tracerOptions = append(tracerOptions, trace.WithSampler(trace.NeverSample()))
+		tracerOptions = append(tracerOptions, sdkTrace.WithSampler(sdkTrace.NeverSample()))
 	default:
-		return nil, errors.Errorf("invalid sampler mode: %s", agent.SamplerMode)
+		return errors.Errorf("invalid sampler mode: %s", agent.SamplerMode)
 	}
 
 	tracerOptions = append(tracerOptions, agent.opt.tracerProviderOptions...)
 
-	tp := trace.NewTracerProvider(tracerOptions...)
+	tp := sdkTrace.NewTracerProvider(tracerOptions...)
+	propagator := propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{})
+	errHandler := otel.ErrorHandlerFunc(func(err error) {
+		errors.Errorf("[otel] error: %v", err)
+	})
+
+	agent.mu.Lock()
+	agent.tp = tp
+	agent.propagator = propagator
+	agent.errHandler = errHandler
+	agent.mu.Unlock()
 
 	otel.SetTracerProvider(tp)
+	otel.SetTextMapPropagator(agent.propagator)
+	otel.SetErrorHandler(agent.errHandler)
 
-	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
-	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(err error) {
-		errors.Errorf("[otel] error: %v", err)
-	}))
+	return nil
+}
 
-	return tp, nil
+func (agent *Agent) Stop(ctx context.Context) error {
+	agent.mu.Lock()
+	defer agent.mu.Unlock()
+
+	if agent.tp != nil {
+		err := agent.tp.Shutdown(ctx)
+		agent.tp = nil
+		return err
+	}
+	return nil
+}
+
+func (agent *Agent) TracerProvider() *sdkTrace.TracerProvider {
+	return agent.tp
+}
+
+func (agent *Agent) Propagator() propagation.TextMapPropagator {
+	return agent.propagator
+}
+
+func (agent *Agent) ErrorHandler() otel.ErrorHandler {
+	return agent.errHandler
 }

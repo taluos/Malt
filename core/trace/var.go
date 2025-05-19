@@ -1,3 +1,5 @@
 package trace
 
-const ()
+const (
+	defaultTracerName = "malt"
+)

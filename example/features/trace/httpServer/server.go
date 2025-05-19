@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	agent "github.com/taluos/Malt/core/trace"
+	maltAgent "github.com/taluos/Malt/core/trace"
 	httpserver "github.com/taluos/Malt/server/rest/httpServer"
 
 	"github.com/gin-gonic/gin"
@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.12.0"
+	"go.opentelemetry.io/otel/trace"
 	mysql "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -42,23 +43,38 @@ type User struct {
 	Role     int        `gorm:"column:role;default:1;type:int"`
 }
 
-func NewTracerProvider(name string) *traceSDK.TracerProvider {
+// 全局 TracerProvider
+var globalAgent *maltAgent.Agent
 
-	agentOpt := agent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
-		agent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
+func NewTracerProvider(name string) *maltAgent.Agent {
+
+	agent := maltAgent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
+		maltAgent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(name),
 			attribute.String("env", "test"),
 		))),
 	)
 
-	tp := agent.InitAgent(agentOpt)
-	return tp
+	return agent
 }
 
 func main() {
+	var err error
+	ctx := context.Background()
+	// 初始化全局 TracerProvider
+	globalAgent = NewTracerProvider("HTTP Server")
+	defer globalAgent.Stop(ctx)
 
-	_ = NewTracerProvider("HTTP Server")
+	// 获取 tracer
+	tr := maltAgent.NewTracer(trace.SpanKindServer,
+		maltAgent.WithTracerProvider(globalAgent.TracerProvider()),
+		maltAgent.WithTracerName("test server"))
+
+	// 创建根 span
+	spanCtx, rootSpan := tr.Start(ctx,
+		"http server root span", globalAgent.Propagator(), nil)
+	defer tr.End(ctx, rootSpan, err)
 
 	r := httpserver.NewServer(
 		httpserver.WithPort(8080),
@@ -70,13 +86,27 @@ func main() {
 	r.GET("/server", Server)
 	r.GET("/gorm", Gorm)
 
-	r.Start(context.Background())
+	// 使用带有 span 上下文的 context 启动服务器
+	r.Start(spanCtx)
 }
 
 func Server(c *gin.Context) {
+	// 从请求中提取 span 上下文
+	ctx := c.Request.Context()
+	var err error
 
-	tp := NewTracerProvider("HTTP Server")
-	defer tp.Shutdown(context.Background())
+	// 使用全局 agent 而不是创建新的
+	// 获取 tracer
+	tr := maltAgent.NewTracer(trace.SpanKindServer,
+		maltAgent.WithTracerProvider(globalAgent.TracerProvider()),
+		maltAgent.WithTracerName("server-handler"))
+
+	// 创建新的 span
+	ctx, span := tr.Start(ctx, "server-handler", globalAgent.Propagator(), nil)
+	defer tr.End(ctx, span, err)
+
+	// 添加一些属性到 span
+	span.SetAttributes(attribute.String("handler", "server"))
 
 	time.Sleep(time.Second * 1)
 
@@ -84,9 +114,19 @@ func Server(c *gin.Context) {
 }
 
 func Gorm(c *gin.Context) {
+	// 从请求中提取 span 上下文
+	ctx := c.Request.Context()
+	var err error
 
-	tp := NewTracerProvider("Gorm Server")
-	defer tp.Shutdown(context.Background())
+	// 使用全局 agent 而不是创建新的
+	// 获取 tracer
+	tr := maltAgent.NewTracer(trace.SpanKindServer,
+		maltAgent.WithTracerProvider(globalAgent.TracerProvider()),
+		maltAgent.WithTracerName("gorm-handler"))
+
+	// 创建新的 span
+	ctx, span := tr.Start(ctx, "gorm-handler", globalAgent.Propagator(), nil)
+	defer tr.End(ctx, span, err)
 
 	dns := "root:root@tcp(192.168.142.137:3306)/shop?charset=utf8mb4&parseTime=True&loc=Local"
 
@@ -106,16 +146,22 @@ func Gorm(c *gin.Context) {
 		Logger: newLogger,
 	})
 	if err != nil {
+		span.RecordError(err)
 		panic(err)
 	}
 
-	if err := db.Use(tracing.NewPlugin(tracing.WithTracerProvider(tp))); err != nil {
+	// 使用带有 span 上下文的 context
+	if err := db.Use(tracing.NewPlugin(tracing.WithTracerProvider(globalAgent.TracerProvider()))); err != nil {
+		span.RecordError(err)
 		panic(err)
 	}
 
-	if err := db.WithContext(c.Request.Context()).Model(&User{}).Where("id > 10").Find(&User{}).Error; err != nil {
+	if err := db.WithContext(ctx).Model(&User{}).Where("id > 10").Find(&User{}).Error; err != nil {
+		span.RecordError(err)
 		panic(err)
 	}
+
+	span.AddEvent("查询完成")
 	time.Sleep(time.Second * 1)
 
 	c.JSON(200, gin.H{})

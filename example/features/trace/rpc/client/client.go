@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	agent "github.com/taluos/Malt/core/trace"
+	maltAgent "github.com/taluos/Malt/core/trace"
 	pb "github.com/taluos/Malt/example/test_proto"
 	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
 
@@ -13,40 +13,43 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
-func NewTracerProvider(name string) *traceSDK.TracerProvider {
+func NewTracerProvider(name string) *maltAgent.Agent {
 
-	agentOpt := agent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
-		agent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
+	agent := maltAgent.NewAgent(name, "http://localhost:4318", "ratio", 1.0, "collector",
+		maltAgent.WithTracerProviderOptions(traceSDK.WithResource(resource.NewWithAttributes(
 			semconv.SchemaURL,
 			semconv.ServiceNameKey.String(name),
 			attribute.String("env", "test"),
 		))),
 	)
 
-	tp := agent.InitAgent(agentOpt)
-	return tp
+	return agent
 }
 
 // Run 启动 gRPC 客户端并优雅关闭
 func Run(ctx context.Context) error {
-	tp := NewTracerProvider("Rpc Client")
-	defer tp.Shutdown(context.Background())
-	tr := tp.Tracer("test")
+	var err error
+	agent := NewTracerProvider("Rpc Client")
+	defer agent.Stop(ctx)
 
-	spanCtx, span := tr.Start(ctx, "test")
+	tr := maltAgent.NewTracer(trace.SpanKindClient,
+		maltAgent.WithTracerProvider(agent.TracerProvider()),
+		maltAgent.WithTracerName("test client"),
+	)
+
+	spanCtx, span := tr.Start(ctx, "test client", agent.Propagator(), nil)
+	defer tr.End(ctx, span, err)
 
 	time.Sleep(time.Second * 1)
-	defer span.End()
 	// 创建 gRPC 客户端，可根据需要自定义连接地址、超时时间等
 	c, err := rpcclient.NewClient(
 		rpcclient.WithEndpoint("127.0.0.1:50051"),
 		rpcclient.WithTimeout(5*time.Second),
 		rpcclient.WithInsecure(true),
 		rpcclient.WithEnableTracing(true),
-		// rpcclient.WithUnaryInterceptors(otelgrpc.UnaryClientInterceptor()),
-		// rpcclient.WithOptions(grpc.WithStatsHandler(otelgrpc.NewClientHandler())),
 	)
 
 	if err != nil {
