@@ -4,8 +4,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	JWT "github.com/taluos/Malt/server/rest/internal/JWT"
-	Casbin "github.com/taluos/Malt/server/rest/internal/RBAC/Casbin"
+	Casbin "github.com/taluos/Malt/core/RBAC/Casbin"
+	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

@@ -3,13 +3,10 @@ package auth
 import (
 	"time"
 
-	cosjwt "github.com/taluos/Malt/server/rest/internal/JWT"
-
-	"github.com/taluos/Malt/pkg/errors/code"
-
-	"github.com/taluos/Malt/pkg/errors"
-
+	cosjwt "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 	"github.com/taluos/Malt/pkg/core"
+	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors/code"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
@@ -48,7 +45,7 @@ func (cache CacheStrategy) AuthFunc() gin.HandlerFunc {
 		var err error
 		var rawJWT string
 
-		rawJWT, err = cosjwt.ParseTokenFromContext(c)
+		rawJWT, err = cosjwt.ParseTokenFromHTTPContext(c)
 		if err != nil {
 			core.WriteResponse(c, errors.WithCode(code.ErrSignatureInvalid, "Token is not validable."), nil)
 			c.Abort()

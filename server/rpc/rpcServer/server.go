@@ -21,7 +21,7 @@ import (
 type Server struct {
 	*grpc.Server // gRPC服务器实例
 
-	baseCtx context.Context
+	rootCtx context.Context
 
 	opt *serverOptions // 服务器选项
 
@@ -113,24 +113,37 @@ func NewServer(opts ...ServerOptions) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
+	var err error
 
 	// 解析address：如果用户没有设置address，则从listener中获取一个address
-	err := s.listenAndEndpoint()
+	err = s.listenAndEndpoint()
 	if err != nil {
-		log.Errorf("Get endpoint failed: %s", err)
+		log.Errorf("[gRPC] Get endpoint failed: %s", err)
 		return err
 	}
 
-	s.baseCtx = ctx
+	s.rootCtx = ctx
 
-	log.Infof("gRPC server listening at %s", s.opt.address)
-	// 监听端口并启动服务
+	log.Infof("[gRPC] server listening at %s", s.opt.address)
+
 	s.opt.healthCheck.Resume()
 
-	return s.Server.Serve(s.opt.listener)
+	err = s.Server.Serve(s.opt.listener)
+	if err != nil {
+		log.Errorf("[gRPC] server serve failed: %s", err)
+		return err
+	}
+
+	return err
 }
 
 func (s *Server) Stop(ctx context.Context) error {
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, defaultTimeout)
+		defer cancel()
+	}
 
 	s.opt.healthCheck.Shutdown()
 

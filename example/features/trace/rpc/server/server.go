@@ -59,7 +59,7 @@ func rpcStop(srv *rpcserver.Server, ctx context.Context) error {
 func main() {
 	var err error
 	agent := NewTracerProvider("Rpc Server")
-	defer agent.Stop(context.Background())
+	defer agent.Shutdown(context.Background())
 	tr := maltAgent.NewTracer(trace.SpanKindServer,
 		maltAgent.WithTracerProvider(agent.TracerProvider()),
 		maltAgent.WithTracerName("test server"),

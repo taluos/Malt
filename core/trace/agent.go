@@ -121,7 +121,7 @@ func (agent *Agent) startAgent() error {
 	return nil
 }
 
-func (agent *Agent) Stop(ctx context.Context) error {
+func (agent *Agent) Shutdown(ctx context.Context) error {
 	agent.mu.Lock()
 	defer agent.mu.Unlock()
 

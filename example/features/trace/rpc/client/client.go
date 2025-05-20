@@ -33,7 +33,7 @@ func NewTracerProvider(name string) *maltAgent.Agent {
 func Run(ctx context.Context) error {
 	var err error
 	agent := NewTracerProvider("Rpc Client")
-	defer agent.Stop(ctx)
+	defer agent.Shutdown(ctx)
 
 	tr := maltAgent.NewTracer(trace.SpanKindClient,
 		maltAgent.WithTracerProvider(agent.TracerProvider()),
@@ -57,7 +57,7 @@ func Run(ctx context.Context) error {
 	}
 
 	// 创建 Greeter 客户端
-	client := pb.NewGreeterClient(c.CliConn)
+	client := pb.NewGreeterClient(c.ClientConn)
 
 	// 调用 SayHello 方法
 	resp, err := client.SayHello(spanCtx, &pb.HelloRequest{Name: "Malt用户"})

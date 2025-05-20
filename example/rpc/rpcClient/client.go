@@ -25,7 +25,7 @@ func Run(ctx context.Context) error {
 		return err
 	}
 	// 创建 Greeter 客户端
-	client := pb.NewGreeterClient(c.CliConn)
+	client := pb.NewGreeterClient(c.ClientConn)
 
 	// 调用 SayHello 方法
 	resp, err := client.SayHello(ctx, &pb.HelloRequest{Name: "Malt用户"})
@@ -85,7 +85,7 @@ func RPCClientClose(cli *rpcclient.Client, ctx context.Context) error {
 // RPCClientUse 使用 RPC 客户端示例
 func RPCClientUse(cli *rpcclient.Client) {
 	// 创建 Greeter 客户端
-	client := pb.NewGreeterClient(cli.CliConn)
+	client := pb.NewGreeterClient(cli.ClientConn)
 
 	// 调用 SayHello 方法
 	resp, err := client.SayHello(context.Background(), &pb.HelloRequest{Name: "Malt用户"})

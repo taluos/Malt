@@ -45,7 +45,7 @@ func main() {
 	defer func(ctx context.Context) {
 		ctx, cancel = context.WithTimeout(ctx, time.Second*5)
 		defer cancel()
-		err := globalAgent.Stop(ctx)
+		err := globalAgent.Shutdown(ctx)
 		if err != nil {
 			panic(err)
 		}

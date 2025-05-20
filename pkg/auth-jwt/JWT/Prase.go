@@ -1,44 +1,34 @@
 package auth
 
 import (
+	"context"
 	"strings"
-	"time"
 
+	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
 	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors/code"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// GenerateJWT 生成一个有效期为 tokenExpiretime 的 JWT Token
-func GenerateJWT(PrivateKey string, userID string, name string, role string, expireTime time.Duration) (string, error) {
-
-	if PrivateKey == "" || userID == "" || name == "" || role == "" {
-		return "", errors.New("invalid input.")
-	}
-
-	// 1. 解析私钥
-	privateKey, err := jwt.ParseECPrivateKeyFromPEM([]byte(PrivateKey))
+// ParseRoleFromContext 从 gin.Context 中解析 JWT Token 的角色
+func ParseRoleFromHTTPContext(c *gin.Context, publiKey string) (string, error) {
+	token, err := ParseTokenFromHTTPContext(c)
 	if err != nil {
-		return "", errors.Wrapf(err, "parse private key failed.")
+		return "", errors.Wrapf(err, "parse token failed.")
 	}
 
-	// 2. 创建 claims
-	claims := NewCustomClaims(userID, name, role, expireTime)
-
-	// 3. 创建 token
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
-
-	// 4. 签名并返回 token 字符串
-	signedToken, err := token.SignedString(privateKey)
+	role, err := parseRoleFormToken(publiKey, token)
 	if err != nil {
-		return "", errors.Wrapf(err, "sign token failed.")
+		return "", errors.Wrapf(err, "parse token failed.")
 	}
 
-	return signedToken, nil
+	return role, nil
 }
 
-func ParseTokenFromContext(c *gin.Context) (string, error) {
+// ParseTokenFromContext 从 gin.Context 中解析 JWT Token
+func ParseTokenFromHTTPContext(c *gin.Context) (string, error) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		// Authorization header not found.
@@ -59,20 +49,25 @@ func ParseTokenFromContext(c *gin.Context) (string, error) {
 	return token, nil
 }
 
-func ParseRoleFromContext(c *gin.Context, publiKey string) (string, error) {
-	token, err := ParseTokenFromContext(c)
-	if err != nil {
-		return "", errors.Wrapf(err, "parse token failed.")
+func ParseTokenFromRPCContext(ctx context.Context) (string, error) {
+	md, ok := rpcmetadata.FromServerContext(ctx)
+	if !ok {
+		return "", errors.WithCode(code.ErrInvalidAuthHeader, "missing metadata")
 	}
 
-	role, err := parseRoleFormToken(publiKey, token)
-	if err != nil {
-		return "", errors.Wrapf(err, "parse token failed.")
+	if tokens, ok := md["authorization"]; ok && len(tokens) > 0 {
+		for _, val := range tokens {
+			parts := strings.SplitN(val, " ", 2)
+			if len(parts) == 2 && strings.EqualFold(parts[0], "Bearer") {
+				return parts[1], nil
+			}
+		}
 	}
 
-	return role, nil
+	return "", errors.WithCode(code.ErrInvalidAuthHeader, "missing app or token in metadata")
 }
 
+// parseRoleFormToken 从 JWT Token 中解析角色
 func parseRoleFormToken(publiKey string, tokenString string) (string, error) {
 	claims := CustomClaims{}
 

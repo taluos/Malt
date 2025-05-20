@@ -7,7 +7,7 @@ import (
 
 	"github.com/taluos/Malt/api/metadata"
 	metric "github.com/taluos/Malt/core/metrics"
-	"github.com/taluos/Malt/server/rpc/internal/auth"
+	"github.com/taluos/Malt/server/rpc/internal/auth-jwt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
@@ -34,7 +34,7 @@ type serverOptions struct {
 	metadata    *metadata.Server // 元数据服务器
 	healthCheck *health.Server   // 健康检查服务器
 
-	authenticator *auth.Authenticator // 认证器
+	JWTauthenticator *auth.Authenticator // 认证器
 
 }
 
@@ -42,7 +42,7 @@ type ServerOptions func(s *serverOptions)
 
 func WithAuthenticator(authenticator *auth.Authenticator) ServerOptions {
 	return func(s *serverOptions) {
-		s.authenticator = authenticator
+		s.JWTauthenticator = authenticator
 	}
 }
 

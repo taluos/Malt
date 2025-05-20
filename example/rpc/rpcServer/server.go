@@ -73,5 +73,6 @@ func RPCStop(srv *rpcserver.Server, ctx context.Context) error {
 	log.Println("Shutting down server...")
 	sctx, cancal := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancal()
+
 	return srv.Stop(sctx)
 }

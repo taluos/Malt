@@ -41,7 +41,7 @@ func TestParseRoleFromContext_Success(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer "+token)
 
-	role, err := ParseRoleFromContext(c, TestPubliKey)
+	role, err := ParseRoleFromHTTPContext(c, TestPubliKey)
 	assert.NoError(t, err)
 	assert.Equal(t, "admin", role)
 }
@@ -52,7 +52,7 @@ func TestParseRoleFromContext_HeaderMissing(t *testing.T) {
 	c, _ := gin.CreateTestContext(w)
 	c.Request = httptest.NewRequest("GET", "/", nil)
 
-	_, err := ParseRoleFromContext(c, TestPubliKey)
+	_, err := ParseRoleFromHTTPContext(c, TestPubliKey)
 	assert.Error(t, err)
 }
 
@@ -63,7 +63,7 @@ func TestParseRoleFromContext_HeaderFormatError(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Token abcdefg")
 
-	_, err := ParseRoleFromContext(c, TestPubliKey)
+	_, err := ParseRoleFromHTTPContext(c, TestPubliKey)
 	assert.Error(t, err)
 }
 
@@ -74,7 +74,7 @@ func TestParseRoleFromContext_TokenInvalid(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer invalid.token.value")
 
-	_, err := ParseRoleFromContext(c, TestPubliKey)
+	_, err := ParseRoleFromHTTPContext(c, TestPubliKey)
 	assert.Error(t, err)
 }
 
@@ -89,6 +89,6 @@ func TestParseRoleFromContext_TokenExpired(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/", nil)
 	c.Request.Header.Set("Authorization", "Bearer "+token)
 
-	_, err = ParseRoleFromContext(c, TestPubliKey)
+	_, err = ParseRoleFromHTTPContext(c, TestPubliKey)
 	assert.Error(t, err)
 }

@@ -202,7 +202,7 @@ func TestClientClose(t *testing.T) {
 
 	// 测试 nil 客户端连接
 	t.Run("nil 连接", func(t *testing.T) {
-		client := &Client{CliConn: nil}
+		client := &Client{}
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()

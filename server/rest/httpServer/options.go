@@ -16,8 +16,9 @@ type serverOptions struct {
 	enableMetrics   bool
 	enableTracing   bool
 
-	middlewares []gin.HandlerFunc
-	jwt         *JwtInfo
+	trustedProxies []string
+	middlewares    []gin.HandlerFunc
+	jwt            *JwtInfo
 }
 
 type ServerOptions func(*serverOptions)
@@ -67,6 +68,12 @@ func WithEnableMetrics(enableMetrics bool) ServerOptions {
 func WithEnableTracing(enableTracing bool) ServerOptions {
 	return func(o *serverOptions) {
 		o.enableTracing = enableTracing
+	}
+}
+
+func WithTrustedProxies(trustedProxies []string) ServerOptions {
+	return func(o *serverOptions) {
+		o.trustedProxies = trustedProxies
 	}
 }
 

@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/taluos/Malt/server/rest/internal/validations"
-
-	"github.com/taluos/Malt/server/rest/internal/pprof"
-
-	"github.com/taluos/Malt/pkg/log"
-
 	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/log"
+	"github.com/taluos/Malt/server/rest/internal/pprof"
+	"github.com/taluos/Malt/server/rest/internal/validations"
 
 	"github.com/gin-gonic/gin"
 	uTranslator "github.com/go-playground/universal-translator"
@@ -22,8 +19,10 @@ import (
 // Wrapper for gin.Engine
 type Server struct {
 	*gin.Engine
-	server *http.Server
-	trans  uTranslator.Translator
+
+	server  *http.Server
+	rootCtx context.Context
+	trans   uTranslator.Translator
 
 	opts *serverOptions
 }
@@ -35,18 +34,19 @@ type ServerMethod interface {
 
 func NewServer(opts ...ServerOptions) *Server {
 	o := &serverOptions{
-		name:            defaultName,
-		port:            defaultPort,
-		mode:            gin.DebugMode, // debug / release / test
-		trans:           defaultrans,
+		name:  defaultName,
+		port:  defaultPort,
+		mode:  gin.DebugMode, // debug / release / test
+		trans: defaultrans,
+
 		healthz:         true,
 		enableProfiling: true,
 		enableMetrics:   false,
 		enableTracing:   false,
-		middlewares:     []gin.HandlerFunc{},
-	}
 
-	o.jwt = NewJwtInfo()
+		trustedProxies: []string{},
+		middlewares:    []gin.HandlerFunc{},
+	}
 
 	// 先应用用户选项
 	for _, opt := range opts {
@@ -110,43 +110,45 @@ func NewServer(opts ...ServerOptions) *Server {
 
 // statrt rest server
 func (s *Server) Start(ctx context.Context) error {
+	var err error
 	// 设置gin模式
 	gin.SetMode(s.opts.mode)
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 		log.Infof("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
 
-	log.Infof("Rest server is running on port %d", s.opts.port)
+	log.Infof("[HTTP] server is running on port %d", s.opts.port)
 
-	_ = s.SetTrustedProxies(nil)
+	_ = s.SetTrustedProxies(s.opts.trustedProxies)
 
 	addr := fmt.Sprintf(":%d", s.opts.port)
 
+	s.rootCtx = ctx
 	s.server = &http.Server{
 		Addr:    addr,
 		Handler: s.Engine,
 	}
 
-	err := s.server.ListenAndServe()
+	err = s.server.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
-		return errors.Wrapf(err, "start rest server failed")
+		return errors.Wrapf(err, "[HTTP] server failed")
 	}
 
-	return nil
+	return err
 }
 
 func (s *Server) Stop(ctx context.Context) error {
 	var err error
 
-	log.Infof("Rest server is stopping on port %d", s.opts.port)
+	log.Infof("[HTTP] server is stopping on port %d", s.opts.port)
 
 	err = s.server.Shutdown(ctx)
 	if err != nil {
-		log.Errorf("stop rest server failed: %s", err.Error())
+		log.Errorf("[HTTP] server stopping failed: %s", err.Error())
 		return errors.Wrapf(err, "stop rest server failed")
 	}
 
-	log.Infof("Rest server is stopped on port %d", s.opts.port)
+	log.Infof("[HTTP] server is stopped on port %d", s.opts.port)
 
-	return nil
+	return err
 }

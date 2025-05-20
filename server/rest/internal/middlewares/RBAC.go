@@ -1,8 +1,7 @@
 package middleware
 
 import (
-	rbac "github.com/taluos/Malt/server/rest/internal/RBAC"
-
+	rbac "github.com/taluos/Malt/core/RBAC"
 	"github.com/taluos/Malt/pkg/log"
 
 	"github.com/gin-gonic/gin"

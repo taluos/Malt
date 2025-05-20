@@ -5,6 +5,7 @@ import (
 
 	"github.com/taluos/Malt/core/resolver/direct"
 	"github.com/taluos/Malt/core/resolver/discovery"
+	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/log"
 	"github.com/taluos/Malt/server/rpc/internal/clientinterceptors"
 
@@ -16,7 +17,10 @@ import (
 type (
 	Client struct {
 		// grpc.ClientConn
-		CliConn *grpc.ClientConn
+		*grpc.ClientConn
+
+		rootCtx    context.Context
+		rootCancel context.CancelFunc
 
 		opts clientOptions
 	}
@@ -31,7 +35,7 @@ type (
 func NewClient(opts ...ClientOptions) (*Client, error) {
 
 	o := clientOptions{
-		endpoint: "/",
+		endpoint: "127.0.0.1:0",
 
 		insecure:      false,
 		enableTracing: false,
@@ -45,15 +49,19 @@ func NewClient(opts ...ClientOptions) (*Client, error) {
 		opt(&o)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), dialTimeout)
+
+	cli := &Client{
+		rootCtx:    ctx,
+		rootCancel: cancel,
+		opts:       o,
+	}
+
 	CliConn, err := dial(o.insecure, o)
 	if err != nil {
 		return nil, err
 	}
-
-	cli := &Client{
-		CliConn: CliConn,
-		opts:    o,
-	}
+	cli.ClientConn = CliConn
 
 	return cli, nil
 }
@@ -64,30 +72,31 @@ func (c *Client) Endpoint() string {
 
 func (c *Client) Close(ctx context.Context) error {
 
-	if c.CliConn == nil {
-		return nil
+	if c.ClientConn == nil {
+		return errors.New("client not initialized")
 	}
 
-	// 创建一个带超时的上下文
+	if c.rootCancel != nil {
+		c.rootCancel()
+	}
+
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, dialTimeout)
 		defer cancel()
 	}
 
-	// 可以在这里添加其他资源的清理
-	// 例如：等待所有正在进行的请求完成或超时
-
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 		log.Infof("[gRPC] client closing")
-		c.CliConn.Close()
+		c.ClientConn.Close()
 	}()
 
 	select {
 	case <-done:
 	case <-ctx.Done():
+		log.Errorf("[gRPC] server couldn't stop gracefully in time")
 		return ctx.Err()
 	}
 
@@ -145,6 +154,10 @@ func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 	}
 
 	CliConn, err := grpc.NewClient(opts.endpoint, grpcOpts...)
+	if err != nil {
+		log.Errorf("[gRPC] dial error: %v", err)
+		return nil, err
+	}
 
 	return CliConn, err
 }

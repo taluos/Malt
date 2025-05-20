@@ -64,7 +64,7 @@ func main() {
 	ctx := context.Background()
 	// 初始化全局 TracerProvider
 	globalAgent = NewTracerProvider("HTTP Server")
-	defer globalAgent.Stop(ctx)
+	defer globalAgent.Shutdown(ctx)
 
 	// 获取 tracer
 	tr := maltAgent.NewTracer(trace.SpanKindServer,

@@ -1,13 +1,10 @@
 package auth
 
 import (
-	cosjwt "github.com/taluos/Malt/server/rest/internal/JWT"
-
-	casbin "github.com/taluos/Malt/server/rest/internal/RBAC/Casbin"
-
-	"github.com/taluos/Malt/pkg/errors/code"
-
+	casbin "github.com/taluos/Malt/core/RBAC/Casbin"
+	cosjwt "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors/code"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -62,7 +59,7 @@ func NewAuthenticator(publiKey string, enforcer *casbin.RBACEnforcer, opts ...Au
 }
 
 func (auth *Authenticator) Authenticate(ctx *gin.Context) error {
-	role, err := cosjwt.ParseRoleFromContext(ctx, auth.publicKey)
+	role, err := cosjwt.ParseRoleFromHTTPContext(ctx, auth.publicKey)
 	if err != nil {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "failed to parse role from context: %v", err)
 	}

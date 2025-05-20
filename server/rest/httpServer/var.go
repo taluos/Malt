@@ -1,7 +1,8 @@
 package httpserver
 
 const (
-	defaultName = "my server"
-	defaultPort = 8080
-	defaultrans = "zh"
+	defaultJWTKey = ":36#Xb#un-*!SXz4:V<sUbAV|$%d5-X6"
+	defaultName   = "my server"
+	defaultPort   = 8080
+	defaultrans   = "zh"
 )

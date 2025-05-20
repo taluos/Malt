@@ -7,18 +7,19 @@ import (
 )
 
 type CustomClaims struct {
-	UserID string `json:"uid"`
-	Name   string `json:"name"`
-	Role   string `json:"role"`
 	jwt.RegisteredClaims
+
+	UserID     string `json:"uid"`
+	FullMethod string `json:"name"`
+	Role       string `json:"role"`
 }
 
 func NewCustomClaims(userID, name, role string, expireTime time.Duration) *CustomClaims {
 	now := time.Now()
 	customClaims := &CustomClaims{
-		UserID: userID,
-		Name:   name,
-		Role:   role,
+		UserID:     userID,
+		FullMethod: name,
+		Role:       role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(TokenExpiretime)),
@@ -42,8 +43,8 @@ func (c *CustomClaims) GetUserID() string {
 	return c.UserID
 }
 
-func (c *CustomClaims) GetName() string {
-	return c.Name
+func (c *CustomClaims) GetMethod() string {
+	return c.FullMethod
 }
 
 func (c *CustomClaims) GetRole() string {

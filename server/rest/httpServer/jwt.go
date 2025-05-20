@@ -1,22 +1,17 @@
+// JWTInfo is a struct that contains the information for JWT authentication.
+//
+// if you want to use JWT authentication, you can set this field in the ServerOptions.
 package httpserver
 
 import (
 	"time"
 )
 
-var (
-	defaultJWTKey = ":36#Xb#un-*!SXz4:V<sUbAV|$%d5-X6"
-)
-
 type JwtInfo struct {
-	// default is "JWT"
-	Realm string
-	// default is empty
-	Key string
-	// default is 5 minutes
-	Timeout time.Duration
-	// default is 10 minutes
-	MaxRefresh time.Duration
+	Realm      string        // default is "JWT"
+	Key        string        // user should provide a key for JWT signing and verifying
+	Timeout    time.Duration // default is 5 minutes
+	MaxRefresh time.Duration // default is 10 minutes
 }
 
 func NewJwtInfo(opts ...JWTOptions) *JwtInfo {

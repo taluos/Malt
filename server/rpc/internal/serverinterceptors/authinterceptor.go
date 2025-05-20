@@ -7,7 +7,7 @@ import (
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/errors/code"
 	"github.com/taluos/Malt/pkg/log"
-	"github.com/taluos/Malt/server/rpc/internal/auth"
+	"github.com/taluos/Malt/server/rpc/internal/auth-jwt"
 
 	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"

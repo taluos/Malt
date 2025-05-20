@@ -4,11 +4,9 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/taluos/Malt/pkg/errors/code"
-
-	"github.com/taluos/Malt/pkg/errors"
-
 	"github.com/taluos/Malt/pkg/core"
+	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/errors/code"
 
 	"github.com/gin-gonic/gin"
 )
