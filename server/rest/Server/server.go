@@ -7,13 +7,13 @@ import (
 
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/log"
+	middleware "github.com/taluos/Malt/server/rest/internal/middlewares"
 	"github.com/taluos/Malt/server/rest/internal/pprof"
 	"github.com/taluos/Malt/server/rest/internal/validations"
 
 	"github.com/gin-gonic/gin"
 	uTranslator "github.com/go-playground/universal-translator"
 	"github.com/penglongli/gin-metrics/ginmetrics"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 )
 
 // Wrapper for gin.Engine
@@ -54,8 +54,14 @@ func NewServer(opts ...ServerOptions) *Server {
 	}
 
 	// 然后根据选项配置添加中间件
-	if o.enableTracing {
-		o.middlewares = append(o.middlewares, otelgin.Middleware(o.name))
+	if o.enableTracing && o.agent != nil {
+		//o.middlewares = append(o.middlewares, otelgin.Middleware(o.name))
+		o.middlewares = append(o.middlewares, middleware.TracingMiddleware(o.agent))
+	}
+
+	if o.authOperator != nil {
+		// 添加认证中间件
+		o.middlewares = append(o.middlewares, middleware.AuthenticMiddleware(o.authOperator))
 	}
 
 	// 创建服务器实例
@@ -145,7 +151,7 @@ func (s *Server) Stop(ctx context.Context) error {
 	err = s.server.Shutdown(ctx)
 	if err != nil {
 		log.Errorf("[HTTP] server stopping failed: %s", err.Error())
-		return errors.Wrapf(err, "stop rest server failed")
+		return errors.Wrapf(err, "[HTTP] stop server failed")
 	}
 
 	log.Infof("[HTTP] server is stopped on port %d", s.opts.port)

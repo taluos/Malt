@@ -14,8 +14,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
-	"go.opentelemetry.io/otel/trace"
 )
+
+var globalAgent *maltAgent.Agent
 
 func NewTracerProvider(name string) *maltAgent.Agent {
 
@@ -28,20 +29,6 @@ func NewTracerProvider(name string) *maltAgent.Agent {
 	)
 
 	return agent
-}
-
-func rpcServerInit() *rpcserver.Server {
-	// 创建 gRPC Server，可根据需要自定义监听地址、超时时间等
-	s := rpcserver.NewServer(
-		rpcserver.WithAddress("127.0.0.1:50051"),
-		rpcserver.WithTimeout(5*time.Second),
-		rpcserver.WithEnableTracing(true),
-	)
-
-	// 注册服务
-	pb.RegisterGreeterServer(s.Server, &service.GreeterServer{})
-
-	return s
 }
 
 func rpcRun(srv *rpcserver.Server, ctx context.Context) error {
@@ -58,27 +45,27 @@ func rpcStop(srv *rpcserver.Server, ctx context.Context) error {
 
 func main() {
 	var err error
-	agent := NewTracerProvider("Rpc Server")
-	defer agent.Shutdown(context.Background())
-	tr := maltAgent.NewTracer(trace.SpanKindServer,
-		maltAgent.WithTracerProvider(agent.TracerProvider()),
-		maltAgent.WithTracerName("test server"),
+	ctx := context.Background()
+	globalAgent := NewTracerProvider("Rpc Server")
+	defer globalAgent.Shutdown(context.Background())
+
+	rpcServer := rpcserver.NewServer(
+		rpcserver.WithAddress("127.0.0.1:50051"),
+		rpcserver.WithTimeout(5*time.Second),
+		rpcserver.WithEnableTracing(true),
+		rpcserver.WithAgent(globalAgent),
 	)
 
-	spanCtx, span := tr.Start(context.Background(), "test", agent.Propagator(), nil)
-	defer tr.End(context.Background(), span, err)
-
-	rpcServer := rpcServerInit()
+	// 注册服务
+	pb.RegisterGreeterServer(rpcServer.Server, &service.GreeterServer{})
 
 	log.Info("RPC server starting")
-	err = rpcRun(rpcServer, spanCtx)
+	err = rpcRun(rpcServer, ctx)
 	if err != nil {
 		log.Fatalf("RPC server stopped with error: %v", err)
 	}
 
-	time.Sleep(2 * time.Second)
-
-	err = rpcStop(rpcServer, spanCtx)
+	err = rpcStop(rpcServer, ctx)
 	if err != nil {
 		panic(err)
 	}

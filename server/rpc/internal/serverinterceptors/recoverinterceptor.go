@@ -1,6 +1,3 @@
-// This file is a copy of https://github.com/zeromicro/go-zero/blob/master/zrpc/internal/serverinterceptors/recoverinterceptor.go
-// and modified by Malt.
-// In detail : we change the log package used in func toPanicError.
 package serverinterceptors
 
 import (

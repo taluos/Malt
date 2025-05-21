@@ -1,8 +1,13 @@
 package auth
 
 import (
-	ginjwt "github.com/appleboy/gin-jwt/v2"
+	// ginjwt "github.com/appleboy/gin-jwt/v2"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
+
+	authJWT "github.com/taluos/Malt/pkg/auth-jwt"
+	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
+	"github.com/taluos/Malt/pkg/log"
 )
 
 // AuthzAudience defines the value of jwt audience field.
@@ -10,17 +15,34 @@ const AuthzAudience = "Malt"
 
 // JWTStrategy defines jwt bearer authentication strategy.
 type JWTStrategy struct {
-	ginjwt.GinJWTMiddleware
+	JWT.JwtInfo
+	authenticator *authJWT.Authenticator
+	keyFunc       jwt.Keyfunc
 }
 
 var _ AuthStrategy = &JWTStrategy{}
 
-// NewJWTStrategy create jwt bearer strategy with GinJWTMiddleware.
-func NewJWTStrategy(gjwt ginjwt.GinJWTMiddleware) JWTStrategy {
-	return JWTStrategy{gjwt}
+func NewJWTStrategy(jwtInfo JWT.JwtInfo, auth authJWT.Authenticator, keyFunc jwt.Keyfunc) JWTStrategy {
+	return JWTStrategy{jwtInfo, &auth, keyFunc}
 }
 
 // AuthFunc defines jwt bearer strategy as the gin authentication middleware.
 func (j JWTStrategy) AuthFunc() gin.HandlerFunc {
-	return j.MiddlewareFunc()
+	if j.authenticator == nil {
+		log.Errorf("jwt authenticator is nil")
+	}
+	return func(c *gin.Context) {
+		// 获取请求路径
+		path := c.Request.URL.Path
+		// 获取 HTTP 方法
+		method := c.Request.Method
+		// 组合成 fullMethod
+		fullMethod := method + ":" + path
+
+		if err := j.authenticator.HTTPAuthenticate(c, fullMethod); err != nil {
+			log.Errorf("failed to authenticate: %s", err)
+			c.Abort()
+		}
+		c.Next()
+	}
 }

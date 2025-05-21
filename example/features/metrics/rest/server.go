@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	httpserver "github.com/taluos/Malt/server/rest/httpServer"
+	httpserver "github.com/taluos/Malt/server/rest/Server"
 
 	"github.com/gin-gonic/gin"
 	"github.com/penglongli/gin-metrics/ginmetrics"

@@ -5,6 +5,7 @@ import (
 
 	metric "github.com/taluos/Malt/core/metrics"
 	"github.com/taluos/Malt/core/registry"
+	maltAgent "github.com/taluos/Malt/core/trace"
 
 	"google.golang.org/grpc"
 )
@@ -22,6 +23,7 @@ type clientOptions struct {
 	counterVecOpts   *metric.CounterVecOpts
 
 	discovery registry.Discovery
+	agent     *maltAgent.Agent
 
 	unaryInterceptors  []grpc.UnaryClientInterceptor  // 一元拦截器列表
 	streamInterceptors []grpc.StreamClientInterceptor // 流式拦截器列表
@@ -78,6 +80,12 @@ func WithCounterVecOpts(opts *metric.CounterVecOpts) ClientOptions {
 func WithDiscovery(discovery registry.Discovery) ClientOptions {
 	return func(c *clientOptions) {
 		c.discovery = discovery
+	}
+}
+
+func WithAgent(agent *maltAgent.Agent) ClientOptions {
+	return func(c *clientOptions) {
+		c.agent = agent
 	}
 }
 

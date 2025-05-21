@@ -10,7 +10,6 @@ import (
 	"github.com/taluos/Malt/pkg/log"
 	"github.com/taluos/Malt/server/rpc/internal/serverinterceptors"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
@@ -20,12 +19,9 @@ import (
 // Server 结构体定义了gRPC服务器的基本属性和配置
 type Server struct {
 	*grpc.Server // gRPC服务器实例
-
-	rootCtx context.Context
-
-	opt *serverOptions // 服务器选项
-
-	metadata *metadata.Server // 元数据服务器
+	rootCtx      context.Context
+	opt          *serverOptions   // 服务器选项
+	metadata     *metadata.Server // 元数据服务器
 }
 
 type RPCServer interface {
@@ -63,6 +59,12 @@ func NewServer(opts ...ServerOptions) *Server {
 			serverinterceptors.UnaryPrometheusInterceptor(o.histogramVecOpts, o.counterVecOpts))
 	}
 
+	if o.enableTracing && o.agent != nil {
+		//grpcOptions = append(grpcOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
+		uraryInts = append(uraryInts,
+			serverinterceptors.UnaryTracingInterceptor(o.agent))
+	}
+
 	if len(o.unaryInterceptors) > 0 {
 		uraryInts = append(uraryInts, o.unaryInterceptors...)
 	}
@@ -82,10 +84,6 @@ func NewServer(opts ...ServerOptions) *Server {
 	// 将用户自己传入的grpc serverOptions合并到grpcOptions
 	if len(o.grpcOpts) > 0 {
 		grpcOptions = append(grpcOptions, o.grpcOpts...)
-	}
-
-	if o.enableTracing {
-		grpcOptions = append(grpcOptions, grpc.StatsHandler(otelgrpc.NewServerHandler()))
 	}
 
 	s := &Server{

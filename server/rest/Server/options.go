@@ -2,6 +2,9 @@ package httpserver
 
 import (
 	"github.com/gin-gonic/gin"
+
+	auth "github.com/taluos/Malt/core/auth"
+	maltAgent "github.com/taluos/Malt/core/trace"
 )
 
 type serverOptions struct {
@@ -18,7 +21,10 @@ type serverOptions struct {
 
 	trustedProxies []string
 	middlewares    []gin.HandlerFunc
-	jwt            *JwtInfo
+
+	// 添加认证操作器
+	agent        *maltAgent.Agent
+	authOperator *auth.AuthOperator
 }
 
 type ServerOptions func(*serverOptions)
@@ -83,8 +89,14 @@ func WithMiddleware(middlewares ...gin.HandlerFunc) ServerOptions {
 	}
 }
 
-func WithJwt(jwt *JwtInfo) ServerOptions {
+func WithAgent(agent *maltAgent.Agent) ServerOptions {
 	return func(o *serverOptions) {
-		o.jwt = jwt
+		o.agent = agent
+	}
+}
+
+func WithAuthOperator(authOperator *auth.AuthOperator) ServerOptions {
+	return func(o *serverOptions) {
+		o.authOperator = authOperator
 	}
 }

@@ -1,5 +1,3 @@
-// this file is a modified of https://github.com/zeromicro/go-zero/blob/master/zrpc/internal/serverinterceptors/timeoutinterceptor.go
-// we modify the error handling
 package serverinterceptors
 
 import (

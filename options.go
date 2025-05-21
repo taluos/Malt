@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/taluos/Malt/pkg/log"
+	restserver "github.com/taluos/Malt/server/rest/Server"
+	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
 	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
 
 	"github.com/taluos/Malt/core/registry"
@@ -26,7 +28,9 @@ type options struct {
 	registrarTimeout time.Duration
 	stopTimeout      time.Duration
 
-	rpcserver *rpcserver.Server
+	restserver []restserver.Server
+	rpcserver  []rpcserver.Server
+	rpcclient  []rpcclient.Client
 }
 
 // 函数选项模式
@@ -85,8 +89,31 @@ func WithStopTimeout(timeout time.Duration) Option {
 	}
 }
 
-func WithRPCServer(rpcserver *rpcserver.Server) Option {
+func WithLogger(logger log.Logger) Option {
+	return func(o *options) {
+		o.logger = logger
+	}
+}
+func WithMetadata(metadata map[string]string) Option {
+	return func(o *options) {
+		o.metadata = metadata
+	}
+}
+
+func WithRESTServer(restserver ...restserver.Server) Option {
+	return func(o *options) {
+		o.restserver = restserver
+	}
+}
+
+func WithRPCServer(rpcserver ...rpcserver.Server) Option {
 	return func(o *options) {
 		o.rpcserver = rpcserver
+	}
+}
+
+func WithRPCClient(rpcclient ...rpcclient.Client) Option {
+	return func(o *options) {
+		o.rpcclient = rpcclient
 	}
 }

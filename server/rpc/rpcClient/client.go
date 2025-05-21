@@ -9,7 +9,6 @@ import (
 	"github.com/taluos/Malt/pkg/log"
 	"github.com/taluos/Malt/server/rpc/internal/clientinterceptors"
 
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	grpcinsecure "google.golang.org/grpc/credentials/insecure"
 )
@@ -118,6 +117,12 @@ func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 			clientinterceptors.UnaryPrometheusInterceptor(opts.histogramVecOpts, opts.counterVecOpts))
 	}
 
+	if opts.enableTracing {
+		//grpcOpts = append(grpcOpts, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
+		uraryInts = append(uraryInts,
+			clientinterceptors.UnaryTracingInterceptor(opts.agent))
+	}
+
 	steamInts := []grpc.StreamClientInterceptor{}
 	if len(opts.streamInterceptors) > 0 {
 		steamInts = append(steamInts, opts.streamInterceptors...) // 追加用户传入的拦截器
@@ -147,10 +152,6 @@ func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 	// 如果是不安全连接，添加不安全选项
 	if insecure {
 		grpcOpts = append(grpcOpts, grpc.WithTransportCredentials(grpcinsecure.NewCredentials()))
-	}
-
-	if opts.enableTracing {
-		grpcOpts = append(grpcOpts, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 	}
 
 	CliConn, err := grpc.NewClient(opts.endpoint, grpcOpts...)

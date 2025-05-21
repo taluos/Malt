@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-func TracingUnaryServerInterceptor(agent *maltAgent.Agent) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func UnaryTracingInterceptor(agent *maltAgent.Agent) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		tr := maltAgent.NewTracer(trace.SpanKindServer,
 			maltAgent.WithTracerProvider(agent.TracerProvider()),
-			maltAgent.WithTracerName("rpc-handler"))
+			maltAgent.WithTracerName(info.FullMethod))
 
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
@@ -27,7 +27,7 @@ func TracingUnaryServerInterceptor(agent *maltAgent.Agent) grpc.UnaryServerInter
 
 		resp, err := handler(spanCtx, req)
 
-		tr.End(spanCtx, span, err)
+		defer tr.End(spanCtx, span, err)
 
 		return resp, err
 	}

@@ -13,8 +13,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/resource"
 	traceSDK "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.7.0"
-	"go.opentelemetry.io/otel/trace"
 )
+
+var globalAgent *maltAgent.Agent
 
 func NewTracerProvider(name string) *maltAgent.Agent {
 
@@ -32,16 +33,8 @@ func NewTracerProvider(name string) *maltAgent.Agent {
 // Run 启动 gRPC 客户端并优雅关闭
 func Run(ctx context.Context) error {
 	var err error
-	agent := NewTracerProvider("Rpc Client")
-	defer agent.Shutdown(ctx)
-
-	tr := maltAgent.NewTracer(trace.SpanKindClient,
-		maltAgent.WithTracerProvider(agent.TracerProvider()),
-		maltAgent.WithTracerName("test client"),
-	)
-
-	spanCtx, span := tr.Start(ctx, "test client", agent.Propagator(), nil)
-	defer tr.End(ctx, span, err)
+	globalAgent := NewTracerProvider("Rpc Client")
+	defer globalAgent.Shutdown(ctx)
 
 	time.Sleep(time.Second * 1)
 	// 创建 gRPC 客户端，可根据需要自定义连接地址、超时时间等
@@ -50,6 +43,7 @@ func Run(ctx context.Context) error {
 		rpcclient.WithTimeout(5*time.Second),
 		rpcclient.WithInsecure(true),
 		rpcclient.WithEnableTracing(true),
+		rpcclient.WithAgent(globalAgent),
 	)
 
 	if err != nil {
@@ -60,7 +54,7 @@ func Run(ctx context.Context) error {
 	client := pb.NewGreeterClient(c.ClientConn)
 
 	// 调用 SayHello 方法
-	resp, err := client.SayHello(spanCtx, &pb.HelloRequest{Name: "Malt用户"})
+	resp, err := client.SayHello(ctx, &pb.HelloRequest{Name: "Malt用户"})
 	if err != nil {
 		log.Printf("调用 SayHello 失败: %v", err)
 	} else {

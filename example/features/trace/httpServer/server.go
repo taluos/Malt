@@ -7,7 +7,7 @@ import (
 	"time"
 
 	maltAgent "github.com/taluos/Malt/core/trace"
-	httpserver "github.com/taluos/Malt/server/rest/httpServer"
+	httpserver "github.com/taluos/Malt/server/rest/Server"
 
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
@@ -60,25 +60,27 @@ func NewTracerProvider(name string) *maltAgent.Agent {
 }
 
 func main() {
-	var err error
+	// var err error
 	ctx := context.Background()
 	// 初始化全局 TracerProvider
 	globalAgent = NewTracerProvider("HTTP Server")
 	defer globalAgent.Shutdown(ctx)
+	/*
+		// 获取 tracer
+		tr := maltAgent.NewTracer(trace.SpanKindServer,
+			maltAgent.WithTracerProvider(globalAgent.TracerProvider()),
+			maltAgent.WithTracerName("test server"))
 
-	// 获取 tracer
-	tr := maltAgent.NewTracer(trace.SpanKindServer,
-		maltAgent.WithTracerProvider(globalAgent.TracerProvider()),
-		maltAgent.WithTracerName("test server"))
-
-	// 创建根 span
-	spanCtx, rootSpan := tr.Start(ctx,
-		"http server root span", globalAgent.Propagator(), nil)
-	defer tr.End(ctx, rootSpan, err)
+		// 创建根 span
+		spanCtx, rootSpan := tr.Start(ctx,
+			"http server root span", globalAgent.Propagator(), nil)
+		defer tr.End(ctx, rootSpan, err)
+	*/
 
 	r := httpserver.NewServer(
 		httpserver.WithPort(8080),
 		httpserver.WithEnableTracing(true),
+		httpserver.WithAgent(globalAgent),
 		httpserver.WithMiddleware(gin.Recovery()),
 	)
 
@@ -87,7 +89,7 @@ func main() {
 	r.GET("/gorm", Gorm)
 
 	// 使用带有 span 上下文的 context 启动服务器
-	r.Start(spanCtx)
+	r.Start(ctx)
 }
 
 func Server(c *gin.Context) {

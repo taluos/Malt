@@ -7,29 +7,39 @@ import (
 	"github.com/google/uuid"
 	"github.com/hashicorp/consul/api"
 	malt "github.com/taluos/Malt"
+	"github.com/taluos/Malt/core/auth"
 	consulRegistry "github.com/taluos/Malt/core/registry/consul"
+	jwtauth "github.com/taluos/Malt/pkg/auth-jwt"
+	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 	"github.com/taluos/Malt/pkg/log"
 	restserver "github.com/taluos/Malt/server/rest/Server"
-	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
 )
 
-func main() {
+func initAuthOperator() *auth.AuthOperator {
+	userID := uuid.New().String()
+	jwtInfo, err := JWT.NewJwtInfo(testPrivateKey, userID, "test:test", "admin", time.Minute*5)
+	if err != nil {
+		log.Fatalf("创建JWT信息失败: %v", err)
+	}
 
+	authOperator, _ := jwtauth.NewAuthenticator(jwtInfo.Keyfunc())
+
+	jwtStratgy := auth.NewJWTStrategy(*jwtInfo, *authOperator, jwtInfo.Keyfunc())
+	authOp := auth.AuthOperator{}
+	authOp.SetStrategy(jwtStratgy)
+	return &authOp
+}
+
+func main() {
 	restServerSet := []restserver.Server{}
-	rpcServerSet := []rpcserver.Server{}
 
 	restServerInstance := restserver.NewServer(
 		restserver.WithPort(8080),
+		restserver.WithAuthOperator(initAuthOperator()),
 		restserver.WithMiddleware(gin.Recovery()),
 	)
 
-	rpcServerInstance := rpcserver.NewServer(
-		rpcserver.WithAddress("127.0.0.1:50051"),
-		rpcserver.WithTimeout(5*time.Second),
-	)
-
 	restServerSet = append(restServerSet, *restServerInstance)
-	rpcServerSet = append(rpcServerSet, *rpcServerInstance)
 
 	consulClient, err := api.NewClient(&api.Config{Address: "192.168.142.136:8500"})
 	if err != nil {
@@ -46,13 +56,13 @@ func main() {
 	var App = malt.New(
 		malt.WithId(uuid.New().String()),
 		malt.WithName("Malt"),
-		malt.WithTags([]string{"Rest:8080", "RPC:50051"}),
-		malt.WithMetadata(map[string]string{"env": "dev", "Rest": "8080", "RPC": "50051"}),
+		malt.WithTags([]string{"Rest:8080"}),
+		malt.WithMetadata(map[string]string{"env": "dev", "Rest": "8080"}),
 		malt.WithRegistrarTimeout(5*time.Second),
 		malt.WithStopTimeout(5*time.Second),
 
 		malt.WithRESTServer(restServerSet...),
-		malt.WithRPCServer(rpcServerSet...),
+
 		malt.WithRegistrar(RegistyInstance),
 	)
 	err = App.Run()
@@ -60,5 +70,4 @@ func main() {
 		log.Fatalf("server failed: %v", err)
 		panic(err)
 	}
-
 }

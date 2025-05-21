@@ -13,10 +13,14 @@ func TracingMiddleware(agent *maltAgent.Agent) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tr := maltAgent.NewTracer(trace.SpanKindServer,
 			maltAgent.WithTracerProvider(agent.TracerProvider()),
-			maltAgent.WithTracerName("http-handler"))
+			maltAgent.WithTracerName(c.FullPath()))
 
 		carrier := propagation.HeaderCarrier(c.Request.Header)
-		spanCtx, span := tr.Start(c.Request.Context(), c.FullPath(), agent.Propagator(), carrier)
+
+		spanCtx, span := tr.Start(c.Request.Context(),
+			c.FullPath(),
+			agent.Propagator(),
+			carrier)
 
 		// 将span上下文传递给请求
 		c.Request = c.Request.WithContext(spanCtx)
