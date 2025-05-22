@@ -35,7 +35,7 @@ func main() {
 		malt.WithRegistrarTimeout(5*time.Second),
 		malt.WithStopTimeout(5*time.Second),
 
-		malt.WithRESTServer(*Server),
+		malt.WithRESTServer(Server),
 		malt.WithRegistrar(RegistyInstance),
 	)
 

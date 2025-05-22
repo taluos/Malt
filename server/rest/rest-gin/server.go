@@ -7,9 +7,9 @@ import (
 
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/log"
-	middleware "github.com/taluos/Malt/server/rest/internal/middlewares"
-	"github.com/taluos/Malt/server/rest/internal/pprof"
-	"github.com/taluos/Malt/server/rest/internal/validations"
+	middleware "github.com/taluos/Malt/server/rest/rest-gin/internal/middlewares"
+	"github.com/taluos/Malt/server/rest/rest-gin/internal/pprof"
+	"github.com/taluos/Malt/server/rest/rest-gin/internal/validations"
 
 	"github.com/gin-gonic/gin"
 	uTranslator "github.com/go-playground/universal-translator"

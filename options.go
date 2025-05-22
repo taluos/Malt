@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/taluos/Malt/pkg/log"
-	restserver "github.com/taluos/Malt/server/rest/Server"
+	restserver "github.com/taluos/Malt/server/rest"
 	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
 	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
 

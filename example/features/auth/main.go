@@ -6,13 +6,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/hashicorp/consul/api"
+
 	malt "github.com/taluos/Malt"
 	"github.com/taluos/Malt/core/auth"
 	consulRegistry "github.com/taluos/Malt/core/registry/consul"
 	jwtauth "github.com/taluos/Malt/pkg/auth-jwt"
 	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 	"github.com/taluos/Malt/pkg/log"
-	restserver "github.com/taluos/Malt/server/rest/Server"
+	restserver "github.com/taluos/Malt/server/rest"
+	ginServer "github.com/taluos/Malt/server/rest/rest-gin"
 )
 
 func initAuthOperator() *auth.AuthOperator {
@@ -33,13 +35,13 @@ func initAuthOperator() *auth.AuthOperator {
 func main() {
 	restServerSet := []restserver.Server{}
 
-	restServerInstance := restserver.NewServer(
-		restserver.WithPort(8080),
-		restserver.WithAuthOperator(initAuthOperator()),
-		restserver.WithMiddleware(gin.Recovery()),
+	restServerInstance := restserver.NewServer("gin",
+		ginServer.WithPort(8080),
+		ginServer.WithAuthOperator(initAuthOperator()),
+		ginServer.WithMiddleware(gin.Recovery()),
 	)
 
-	restServerSet = append(restServerSet, *restServerInstance)
+	restServerSet = append(restServerSet, restServerInstance)
 
 	consulClient, err := api.NewClient(&api.Config{Address: "192.168.142.136:8500"})
 	if err != nil {

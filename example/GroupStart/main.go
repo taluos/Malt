@@ -3,14 +3,16 @@ package main
 import (
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/hashicorp/consul/api"
+	consulApi "github.com/hashicorp/consul/api"
 	malt "github.com/taluos/Malt"
 	consulRegistry "github.com/taluos/Malt/core/registry/consul"
 	"github.com/taluos/Malt/pkg/log"
-	restserver "github.com/taluos/Malt/server/rest/Server"
+	restserver "github.com/taluos/Malt/server/rest"
+	ginServer "github.com/taluos/Malt/server/rest/rest-gin"
 	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func main() {
@@ -18,9 +20,9 @@ func main() {
 	restServerSet := []restserver.Server{}
 	rpcServerSet := []rpcserver.Server{}
 
-	restServerInstance := restserver.NewServer(
-		restserver.WithPort(8080),
-		restserver.WithMiddleware(gin.Recovery()),
+	restServerInstance := restserver.NewServer("gin",
+		ginServer.WithPort(8080),
+		ginServer.WithMiddleware(gin.Recovery()),
 	)
 
 	rpcServerInstance := rpcserver.NewServer(
@@ -28,10 +30,10 @@ func main() {
 		rpcserver.WithTimeout(5*time.Second),
 	)
 
-	restServerSet = append(restServerSet, *restServerInstance)
+	restServerSet = append(restServerSet, restServerInstance)
 	rpcServerSet = append(rpcServerSet, *rpcServerInstance)
 
-	consulClient, err := api.NewClient(&api.Config{Address: "192.168.142.136:8500"})
+	consulClient, err := consulApi.NewClient(&consulApi.Config{Address: "192.168.142.136:8500"})
 	if err != nil {
 		log.Fatalf("创建consul客户端失败: %v", err)
 	}
@@ -55,6 +57,7 @@ func main() {
 		malt.WithRPCServer(rpcServerSet...),
 		malt.WithRegistrar(RegistyInstance),
 	)
+
 	err = App.Run()
 	if err != nil {
 		log.Fatalf("server failed: %v", err)

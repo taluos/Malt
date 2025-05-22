@@ -1,17 +1,18 @@
 package restserver
 
 import (
-	restserver "github.com/taluos/Malt/server/rest/Server"
+	restserver "github.com/taluos/Malt/server/rest"
 )
 
-func InitRouter(g *restserver.Server) {
-	v1 := g.Group("/v1")
+func InitRouter(srv restserver.Server) {
+
+	v1 := srv.Group("/v1")
 	{
 		userGroup := v1.Group("/user")
 		{
 			userController := NewUserServer()
-			userGroup.GET("info", userController.GetUserInfo)
+			userGroup.Handle("GET", "/info", userController.GetUserInfo)
+			// userGroup.GET("/info", userController.GetUserInfo)
 		}
 	}
-
 }
