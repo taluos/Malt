@@ -43,7 +43,7 @@ func (j JWTStrategy) AuthFunc() gin.HandlerFunc {
 		// 组合成 fullMethod
 		fullMethod := method + ":" + path
 		authHeader := c.GetHeader("Authorization")
-		if err := j.authenticator.HTTPAuthenticate(authHeader, fullMethod); err != nil {
+		if err := j.authenticator.HTTPAuthenticate(authHeader, "", fullMethod, ""); err != nil {
 			internal.WriteResponse(c, errors.WithCode(code.ErrSignatureInvalid, "Token is not validable."), nil)
 			c.Abort()
 		}

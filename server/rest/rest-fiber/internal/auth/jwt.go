@@ -43,7 +43,7 @@ func (j JWTStrategy) AuthFunc() fiber.Handler {
 		// 组合成 fullMethod
 		fullMethod := method + ":" + path // for example: GET:/api/v1/hello
 		authHeader := c.Get("Authorization")
-		if err := j.authenticator.HTTPAuthenticate(authHeader, fullMethod); err != nil {
+		if err := j.authenticator.HTTPAuthenticate(authHeader, "", fullMethod, ""); err != nil {
 			internal.WriteResponse(c, errors.WithCode(code.ErrSignatureInvalid, "Token is not validable."), nil)
 			c.Drop()
 		}

@@ -20,13 +20,8 @@ func RBACMiddleware(authenticator *rbac.Authenticator) fiber.Handler {
 		}
 	}
 	return func(c fiber.Ctx) error {
-		token := c.Get("Authorization")
-		if token == "" {
-			log.Errorf("token is empty")
-			c.Drop()
-			return errors.New("token is empty")
-		}
-		err := authenticator.Authenticate(getJWTToken(c), c.Route().Path, c.Method())
+		tokenString := getJWTToken(c)
+		err := authenticator.Authenticate(tokenString, c.Route().Path, c.Method())
 		if err != nil {
 			log.Errorf("authenticate error: %v", err)
 			c.Drop()

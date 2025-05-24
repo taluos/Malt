@@ -23,7 +23,7 @@ func SteamAuthorizeInterceptor(keyFunc jwt.Keyfunc, authenticator *auth.Authenti
 		}
 	}
 	return func(svr any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
-		if err := authenticator.RPCAuthenticate(stream.Context(), info.FullMethod); err != nil {
+		if err := authenticator.RPCAuthenticate(stream.Context(), "", info.FullMethod, ""); err != nil {
 			log.Errorf("auth failed: %s", err)
 			return errors.WithCode(code.ErrInvalidAuthHeader, "auth failed")
 		}
@@ -41,7 +41,7 @@ func UnaryAuthorizeInterceptor(keyFunc jwt.Keyfunc, authenticator *auth.Authenti
 		}
 	}
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
-		if err := authenticator.RPCAuthenticate(ctx, info.FullMethod); err != nil {
+		if err := authenticator.RPCAuthenticate(ctx, "", info.FullMethod, ""); err != nil {
 			log.Errorf("auth failed: %s", err)
 			return nil, errors.WithCode(code.ErrInvalidAuthHeader, "auth failed")
 		}

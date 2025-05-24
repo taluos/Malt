@@ -1,7 +1,4 @@
-// JWTInfo is a struct that contains the information for JWT authentication.
-//
-// if you want to use JWT authentication, you can set this field in the ServerOptions.
-package auth
+package jwt
 
 import (
 	"time"
@@ -10,80 +7,100 @@ import (
 )
 
 type JwtInfo struct {
-	Realm      string        // default is "JWT"
-	token      string        // jwt token
-	keyFunc    jwt.Keyfunc   // default is ParseRSAPublicKeyFromPEM
-	Timeout    time.Duration // default is 5 minutes
-	MaxRefresh time.Duration // default is 10 minutes
+	Realm      string        `json:"realm"`
+	Timeout    time.Duration `json:"timeout"`
+	MaxRefresh time.Duration `json:"max_refresh"`
 
-	privateKey string
+	token         string
+	signingMethod jwt.SigningMethod
+	privateKey    string
+	keyFunc       jwt.Keyfunc
+
+	// RBAC fields
 	userID     string
-	FullMethod string
+	fullMethod string
 	role       string
-	expire     time.Duration
 }
 
-func NewJwtInfo(privateKey string, userID string, FullMethod string, role string, expire time.Duration, opts ...JWTOptions) (*JwtInfo, error) {
-	var err error
+func NewJwtInfo(privateKey, userID, fullMethod, role string, opts ...JWTOption) (*JwtInfo, error) {
 	jwtInfo := &JwtInfo{
-		Realm: "JWT",
-		keyFunc: func(token *jwt.Token) (interface{}, error) {
-			return jwt.ParseRSAPublicKeyFromPEM([]byte(privateKey))
-		},
-		Timeout:    time.Minute * 5,
-		MaxRefresh: time.Minute * 10,
+		Realm:         "JWT",
+		Timeout:       DefaultExpireTime,
+		MaxRefresh:    DefaultMaxRefresh,
+		signingMethod: jwt.SigningMethodES256, // 统一使用ECDSA
+		privateKey:    privateKey,
+		userID:        userID,
+		fullMethod:    fullMethod,
+		role:          role,
+	}
 
-		privateKey: privateKey,
-		userID:     userID,
-		FullMethod: FullMethod,
-		role:       role,
-		expire:     expire,
+	// 设置默认的密钥函数
+	jwtInfo.keyFunc = func(token *jwt.Token) (any, error) {
+		return jwt.ParseECPublicKeyFromPEM([]byte(privateKey))
 	}
 
 	for _, opt := range opts {
 		opt(jwtInfo)
 	}
 
-	jwtInfo.token, err = GenerateJWT(
-		jwtInfo.privateKey,
-		jwtInfo.userID,
-		jwtInfo.FullMethod,
-		jwtInfo.role,
-		jwtInfo.expire,
-	)
-
+	var err error
+	jwtInfo.token, err = GenerateJWT(*jwtInfo)
 	return jwtInfo, err
 }
 
-type JWTOptions func(*JwtInfo)
+type JWTOption func(*JwtInfo)
 
-func WithRealm(realm string) JWTOptions {
+func WithRealm(realm string) JWTOption {
 	return func(o *JwtInfo) {
 		o.Realm = realm
 	}
 }
 
-func WithTimeout(timeout time.Duration) JWTOptions {
+func WithTimeout(timeout time.Duration) JWTOption {
 	return func(o *JwtInfo) {
 		o.Timeout = timeout
 	}
 }
 
-func WithMaxRefresh(maxRefresh time.Duration) JWTOptions {
+func WithMaxRefresh(maxRefresh time.Duration) JWTOption {
 	return func(o *JwtInfo) {
 		o.MaxRefresh = maxRefresh
 	}
 }
-func WithKeyFunc(keyFunc jwt.Keyfunc) JWTOptions {
+
+func WithKeyFunc(keyFunc jwt.Keyfunc) JWTOption {
 	return func(o *JwtInfo) {
 		o.keyFunc = keyFunc
 	}
 }
 
+func WithSigningMethod(method jwt.SigningMethod) JWTOption {
+	return func(o *JwtInfo) {
+		o.signingMethod = method
+	}
+}
+
+// Getter methods
 func (j *JwtInfo) Keyfunc() jwt.Keyfunc {
 	return j.keyFunc
 }
 
 func (j *JwtInfo) Token() string {
 	return j.token
+}
+
+func (j *JwtInfo) GetUserID() string {
+	return j.userID
+}
+
+func (j *JwtInfo) GetFullMethod() string {
+	return j.fullMethod
+}
+
+func (j *JwtInfo) GetRole() string {
+	return j.role
+}
+
+func (j *JwtInfo) GetSigningMethod() jwt.SigningMethod {
+	return j.signingMethod
 }

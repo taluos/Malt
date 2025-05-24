@@ -1,8 +1,9 @@
 package middleware
 
 import (
+	"strings"
+
 	rbac "github.com/taluos/Malt/core/RBAC"
-	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 	"github.com/taluos/Malt/pkg/log"
 
 	"github.com/gin-gonic/gin"
@@ -17,9 +18,10 @@ func RBACMiddleware(authenticator *rbac.Authenticator) gin.HandlerFunc {
 		}
 	}
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		tokenString, err := JWT.ParseTokenFromHTTPContext(authHeader)
-		err = authenticator.Authenticate(tokenString, c.Request.URL.Path, c.Request.Method)
+		//authHeader := c.GetHeader("Authorization")
+		//tokenString, err := JWT.ParseTokenFromHTTPContext(authHeader)
+		tokenString := getJWTToken(c)
+		err := authenticator.Authenticate(tokenString, c.Request.URL.Path, c.Request.Method)
 		if err != nil {
 			log.Errorf("authenticate error: %v", err)
 			c.Abort()
@@ -27,4 +29,26 @@ func RBACMiddleware(authenticator *rbac.Authenticator) gin.HandlerFunc {
 		}
 		c.Next()
 	}
+}
+
+func getJWTToken(c *gin.Context) string {
+	// 从请求头中获取 Authorization 字段
+	authHeader := c.GetHeader("Authorization")
+	// authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		// Authorization header not found.
+		return ""
+	}
+	prefix := "Bearer "
+	if !strings.HasPrefix(authHeader, prefix) {
+		// Incorrect Authorization header format.
+		return ""
+	}
+
+	token := strings.TrimPrefix(authHeader, prefix)
+	if token == "" {
+		// JWT not found.
+		return ""
+	}
+	return token
 }

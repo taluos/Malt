@@ -3,9 +3,12 @@ package auth
 
 import (
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"time"
 
 	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
+	"github.com/taluos/Malt/pkg/cache"
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/errors/code"
 
@@ -13,63 +16,87 @@ import (
 )
 
 type Authenticator struct {
-	// secretFunc 用于解析 token 的密钥, 如果是非对称加密则返回公钥，否则返回私钥
-	secretFunc    jwt.Keyfunc
+	// keyFunc 用于解析token的密钥
+	keyFunc       jwt.Keyfunc
 	signingMethod jwt.SigningMethod
 	claims        func() jwt.Claims
 
+	// 缓存相关
 	useCache bool
+	cache    cache.CacheMethod
 }
 
-func NewAuthenticator(keyfunc jwt.Keyfunc, opts ...AuthOptions) (*Authenticator, error) {
+func NewAuthenticator(keyfunc jwt.Keyfunc, opts ...AuthOption) (*Authenticator, error) {
 	auth := &Authenticator{
 		signingMethod: jwt.SigningMethodES256,
 		claims:        func() jwt.Claims { return &JWT.CustomClaims{} },
+		keyFunc:       keyfunc,
+		useCache:      false,
 	}
-
-	auth.secretFunc = keyfunc
 
 	// 应用选项
 	for _, opt := range opts {
 		opt(auth)
 	}
 
+	// 如果启用缓存但没有提供缓存实例，创建默认缓存
+	if auth.useCache && auth.cache == nil {
+		cacheInstance, err := cache.NewCache(time.Minute*10, 1000) // 默认10分钟TTL，1000个条目
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create default cache")
+		}
+		auth.cache = cacheInstance
+	}
+
 	return auth, nil
 }
 
-type AuthenMethod interface {
-	RPCAuthenticate(ctx context.Context, FullMethod string) error
-	HTTPAuthenticate(authHeader, FullMethod string) error
+type AuthMethod interface {
+	RPCAuthenticate(ctx context.Context, fullMethod string) error
+	HTTPAuthenticate(authHeader, fullMethod string) error
 }
 
-// Authenticate 从 context 中提取 token 字符串，然后进行验证。需要传入 FullMethod，例如 /pkg.Service/Method
-// 来验证这个 token 是否对应这个方法。
-func (auth *Authenticator) RPCAuthenticate(ctx context.Context, FullMethod string) error {
-
-	// 先从metadata提取token字符串
+// RPCAuthenticate 从context中提取token字符串，然后进行验证
+func (auth *Authenticator) RPCAuthenticate(ctx context.Context, userID, fullMethod, role string) error {
 	tokenString, err := JWT.ParseTokenFromRPCContext(ctx)
 	if err != nil {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "missing or invalid authorization token")
 	}
-	// 调用业务层token验证
-	return auth.validateToken(tokenString, FullMethod)
+	return auth.validateToken(tokenString, userID, fullMethod, role)
 }
 
-func (auth *Authenticator) HTTPAuthenticate(authHeader string, FullMethod string) error {
+// HTTPAuthenticate HTTP认证
+func (auth *Authenticator) HTTPAuthenticate(authHeader, userID, fullMethod, role string) error {
 	tokenString, err := JWT.ParseTokenFromHTTPContext(authHeader)
 	if err != nil {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "missing or invalid authorization token")
 	}
-	return auth.validateToken(tokenString, FullMethod)
+	return auth.validateToken(tokenString, userID, fullMethod, role)
 }
 
-func (auth *Authenticator) validateToken(tokenString string, FullMethod string) error {
+// validateToken 验证token
+func (auth *Authenticator) validateToken(tokenString, userID, fullMethod, role string) error {
+	// 如果启用缓存，先检查缓存
+	if auth.useCache && auth.cache != nil {
+		cacheKey := auth.generateCacheKey(tokenString, fullMethod)
+		if cached, found := auth.cache.Get(cacheKey); found {
+			if result, ok := cached.(bool); ok && result {
+				return nil // 缓存中存在且验证通过
+			}
+			// 如果缓存中存在但验证失败，继续进行完整验证
+		}
+	}
 
 	// 校验token
 	token, err := jwt.ParseWithClaims(tokenString, auth.claims(),
-		auth.secretFunc,
+		auth.keyFunc,
 		jwt.WithValidMethods([]string{auth.signingMethod.Alg()}))
 	if err != nil || !token.Valid {
+		// 验证失败，如果使用缓存则缓存失败结果
+		if auth.useCache && auth.cache != nil {
+			cacheKey := auth.generateCacheKey(tokenString, fullMethod)
+			auth.cache.Set(cacheKey, false)
+		}
 		return errors.WithCode(code.UserNoAuthority, "Invalid JWT token")
 	}
 
@@ -78,26 +105,43 @@ func (auth *Authenticator) validateToken(tokenString string, FullMethod string) 
 		return errors.WithCode(code.UserNoAuthority, "invalid claims")
 	}
 
-	// FullMethod 校验
-	if claims.FullMethod != FullMethod {
-		return errors.WithCode(code.UserNoAuthority, "token not permitted for this method")
+	// FullMethod校验
+	if fullMethod != "" && claims.GetFullMethod() != fullMethod {
+		return errors.WithCode(code.UserNoAuthority, "Not permitted for this method")
+	}
+	// UserID校验
+	if userID != "" && claims.GetUserID() != userID {
+		return errors.WithCode(code.UserNoAuthority, "Not permitted for this user")
+	}
+	// Role校验
+	if role != "" && claims.GetRole() != role {
+		return errors.WithCode(code.UserNoAuthority, "Not permitted for this role")
 	}
 
 	// 检查token是否过期
 	now := time.Now()
 
-	// 优先判断 exp
+	// 优先判断exp
 	if claims.ExpiresAt != nil && now.After(claims.ExpiresAt.Time) {
 		return errors.WithCode(code.UserNoAuthority, "the token expires (via exp)")
 	}
 
-	// 或者使用 iat + tokenExpiretime
-	if claims.IssuedAt != nil {
-		expireAt := claims.IssuedAt.Time.Add(tokenExpiretime)
-		if now.After(expireAt) {
-			return errors.WithCode(code.UserNoAuthority, "the token expires (via iat + tokenExpiretime)")
-		}
+	// 再判断nbf
+	if claims.NotBefore != nil && now.Before(claims.NotBefore.Time) {
+		return errors.WithCode(code.UserNoAuthority, "the token is not yet valid (via nbf)")
+	}
+
+	// 验证成功，如果使用缓存则缓存成功结果
+	if auth.useCache && auth.cache != nil {
+		cacheKey := auth.generateCacheKey(tokenString, fullMethod)
+		auth.cache.Set(cacheKey, true)
 	}
 
 	return nil
+}
+
+// generateCacheKey 生成缓存键
+func (auth *Authenticator) generateCacheKey(tokenString, fullMethod string) string {
+	hash := sha256.Sum256([]byte(tokenString + ":" + fullMethod))
+	return fmt.Sprintf("auth:%x", hash)
 }

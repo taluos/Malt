@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"testing"
-	"time"
 
 	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
 	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
@@ -21,8 +20,12 @@ func TestNewAuthenticator(t *testing.T) {
 }
 
 func TestAuthenticate_ValidToken(t *testing.T) {
+	// 生成 jwtInfo
+	jwtInfo, err := JWT.NewJwtInfo(JWT.TestPrivateKey, "uuid", "/test.Service/Method", "admin")
+	assert.NoError(t, err)
+	assert.NotNil(t, jwtInfo)
 	// 生成合法token
-	token, err := JWT.GenerateJWT(testPrivateKey, "uuid", "/test.Service/Method", "admin", time.Minute)
+	token, err := JWT.GenerateJWT(*jwtInfo)
 	assert.NoError(t, err)
 
 	// 构造metadata
@@ -32,10 +35,10 @@ func TestAuthenticate_ValidToken(t *testing.T) {
 	ctx := rpcmetadata.NewServerContext(context.Background(), md)
 
 	auth, _ := NewAuthenticator(func(token *jwt.Token) (interface{}, error) {
-		return jwt.ParseECPublicKeyFromPEM([]byte(testPubliKey))
+		return jwt.ParseECPublicKeyFromPEM([]byte(JWT.TestPublicKey))
 	})
 
-	err = auth.RPCAuthenticate(ctx, "/test.Service/Method")
+	err = auth.RPCAuthenticate(ctx, "uuid", "/test.Service/Method", "admin")
 	assert.NoError(t, err)
 }
 
@@ -46,18 +49,18 @@ func TestAuthenticate_InvalidToken(t *testing.T) {
 	ctx := rpcmetadata.NewServerContext(context.Background(), md)
 
 	auth, _ := NewAuthenticator(func(token *jwt.Token) (interface{}, error) {
-		return jwt.ParseECPublicKeyFromPEM([]byte(testPubliKey))
+		return jwt.ParseECPublicKeyFromPEM([]byte(JWT.TestPublicKey))
 	})
 
-	err := auth.RPCAuthenticate(ctx, "/test.Service/Method")
+	err := auth.RPCAuthenticate(ctx, "", "/test.Service/Method", "")
 	assert.Error(t, err)
 }
 
 func TestAuthenticate_MissingToken(t *testing.T) {
 	ctx := context.Background()
 	auth, _ := NewAuthenticator(func(token *jwt.Token) (interface{}, error) {
-		return jwt.ParseECPublicKeyFromPEM([]byte(testPubliKey))
+		return jwt.ParseECPublicKeyFromPEM([]byte(JWT.TestPublicKey))
 	})
-	err := auth.RPCAuthenticate(ctx, "/test.Service/Method")
+	err := auth.RPCAuthenticate(ctx, "", "/test.Service/Method", "")
 	assert.Error(t, err)
 }

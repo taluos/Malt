@@ -18,6 +18,14 @@ type Authenticator struct {
 	claims        func() jwt.Claims
 }
 
+// RBAC RBAC 认证
+// 1: 解析JWT token， 先验证token是否有效
+// 2：从token中解析 user, role, method
+// 3：从Casbin中验证 user, role, method 是否有效
+// 4：如果有效，返回nil，否则返回错误
+// 5：如果使用缓存，将 user, role, method 存入缓存，过期时间为 token 的有效期
+// 6：如果不使用缓存，直接返回 nil
+
 func NewAuthenticator(publiKey string, enforcer *casbin.RBACEnforcer, opts ...AuthOptions) (*Authenticator, error) {
 	auth := &Authenticator{
 		publicKey:     publiKey,

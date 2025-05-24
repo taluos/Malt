@@ -2,22 +2,43 @@ package auth
 
 import (
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/taluos/Malt/pkg/cache"
 )
 
-type AuthOptions func(*Authenticator)
+type AuthOption func(*Authenticator)
 
-// WithSigningMethod with signing method option.
-func WithSigningMethod(method jwt.SigningMethod) AuthOptions {
+// WithSigningMethod 设置签名方法
+func WithSigningMethod(method jwt.SigningMethod) AuthOption {
 	return func(auth *Authenticator) {
 		auth.signingMethod = method
 	}
 }
 
-// WithClaims with customer claim
-// If you use it in Server, f needs to return a new jwt.Claims object each time to avoid concurrent write problems
-// If you use it in Client, f only needs to return a single object to provide performance
-func WithClaims(f func() jwt.Claims) AuthOptions {
+// WithClaims 设置自定义Claims
+func WithClaims(f func() jwt.Claims) AuthOption {
 	return func(auth *Authenticator) {
 		auth.claims = f
+	}
+}
+
+// WithSecretFunc 设置密钥函数
+func WithSecretFunc(f jwt.Keyfunc) AuthOption {
+	return func(auth *Authenticator) {
+		auth.keyFunc = f
+	}
+}
+
+// WithUseCache 启用缓存
+func WithUseCache(useCache bool) AuthOption {
+	return func(auth *Authenticator) {
+		auth.useCache = useCache
+	}
+}
+
+// WithCache 设置自定义缓存实例
+func WithCache(cache cache.CacheMethod) AuthOption {
+	return func(auth *Authenticator) {
+		auth.cache = cache
+		auth.useCache = true
 	}
 }
