@@ -1,17 +1,15 @@
 package storage
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/taluos/Malt/pkg/errors"
 
-	"os"
-
 	"github.com/glebarez/sqlite"
-
-	// "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-
-	"fmt"
-	"path/filepath"
+	// "gorm.io/driver/sqlite"
 )
 
 type SQLiteStorage struct {

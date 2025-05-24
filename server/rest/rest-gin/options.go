@@ -3,18 +3,18 @@ package httpserver
 import (
 	"github.com/gin-gonic/gin"
 
-	auth "github.com/taluos/Malt/core/auth"
 	maltAgent "github.com/taluos/Malt/core/trace"
+	auth "github.com/taluos/Malt/server/rest/rest-gin/internal/auth"
 )
 
 type serverOptions struct {
-	name string
-	port int
+	name    string
+	address string
 
 	mode  string
 	trans string
 
-	healthz         bool
+	enableHealth    bool
 	enableProfiling bool
 	enableMetrics   bool
 	enableTracing   bool
@@ -22,7 +22,6 @@ type serverOptions struct {
 	trustedProxies []string
 	middlewares    []gin.HandlerFunc
 
-	// 添加认证操作器
 	agent        *maltAgent.Agent
 	authOperator *auth.AuthOperator
 }
@@ -35,9 +34,9 @@ func WithName(name string) ServerOptions {
 	}
 }
 
-func WithPort(port int) ServerOptions {
+func WithAddress(address string) ServerOptions {
 	return func(o *serverOptions) {
-		o.port = port
+		o.address = address
 	}
 }
 
@@ -55,7 +54,7 @@ func WithTrans(trans string) ServerOptions {
 
 func WithHealthz(healthz bool) ServerOptions {
 	return func(o *serverOptions) {
-		o.healthz = healthz
+		o.enableHealth = healthz
 	}
 }
 

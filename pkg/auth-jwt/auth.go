@@ -5,7 +5,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	JWT "github.com/taluos/Malt/pkg/auth-jwt/JWT"
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/errors/code"
@@ -18,6 +17,8 @@ type Authenticator struct {
 	secretFunc    jwt.Keyfunc
 	signingMethod jwt.SigningMethod
 	claims        func() jwt.Claims
+
+	useCache bool
 }
 
 func NewAuthenticator(keyfunc jwt.Keyfunc, opts ...AuthOptions) (*Authenticator, error) {
@@ -38,7 +39,7 @@ func NewAuthenticator(keyfunc jwt.Keyfunc, opts ...AuthOptions) (*Authenticator,
 
 type AuthenMethod interface {
 	RPCAuthenticate(ctx context.Context, FullMethod string) error
-	HTTPAuthenticate(ctx *gin.Context, FullMethod string) error
+	HTTPAuthenticate(authHeader, FullMethod string) error
 }
 
 // Authenticate 从 context 中提取 token 字符串，然后进行验证。需要传入 FullMethod，例如 /pkg.Service/Method
@@ -46,7 +47,6 @@ type AuthenMethod interface {
 func (auth *Authenticator) RPCAuthenticate(ctx context.Context, FullMethod string) error {
 
 	// 先从metadata提取token字符串
-	//tokenString, err := extractToken(ctx)
 	tokenString, err := JWT.ParseTokenFromRPCContext(ctx)
 	if err != nil {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "missing or invalid authorization token")
@@ -55,9 +55,8 @@ func (auth *Authenticator) RPCAuthenticate(ctx context.Context, FullMethod strin
 	return auth.validateToken(tokenString, FullMethod)
 }
 
-func (auth *Authenticator) HTTPAuthenticate(ctx *gin.Context, FullMethod string) error {
-
-	tokenString, err := JWT.ParseTokenFromHTTPContext(ctx)
+func (auth *Authenticator) HTTPAuthenticate(authHeader string, FullMethod string) error {
+	tokenString, err := JWT.ParseTokenFromHTTPContext(authHeader)
 	if err != nil {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "missing or invalid authorization token")
 	}

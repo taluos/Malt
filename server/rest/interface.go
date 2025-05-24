@@ -12,10 +12,6 @@ type Server interface {
 	// Stop 停止服务器
 	Stop(ctx context.Context) error
 
-	// Engine 返回底层的HTTP引擎，允许直接访问底层实现
-	// 注意：这可能会导致与底层实现的耦合，应谨慎使用
-	Engine() any
-
 	// Group 创建一个新的路由组
 	Group(relativePath string, handlers ...any) RouteGroup
 
@@ -29,34 +25,34 @@ type Server interface {
 // RouteGroup 定义了路由组的接口
 type RouteGroup interface {
 	// Group 创建一个嵌套的路由组
-	Group(relativePath string, handlers ...interface{}) RouteGroup
+	Group(relativePath string, handlers ...any) RouteGroup
 
 	// Use 为路由组添加中间件
-	Use(middleware ...interface{}) RouteGroup
+	Use(middleware ...any) RouteGroup
 
 	// Handle 在路由组中注册一个新路由
-	Handle(httpMethod, relativePath string, handlers ...interface{}) RouteGroup
+	Handle(httpMethod, relativePath string, handlers ...any) RouteGroup
 
 	// GET 注册一个GET请求处理器
-	GET(relativePath string, handlers ...interface{}) RouteGroup
+	GET(relativePath string, handlers ...any) RouteGroup
 
 	// POST 注册一个POST请求处理器
-	POST(relativePath string, handlers ...interface{}) RouteGroup
+	POST(relativePath string, handlers ...any) RouteGroup
 
 	// PUT 注册一个PUT请求处理器
-	PUT(relativePath string, handlers ...interface{}) RouteGroup
+	PUT(relativePath string, handlers ...any) RouteGroup
 
 	// DELETE 注册一个DELETE请求处理器
-	DELETE(relativePath string, handlers ...interface{}) RouteGroup
+	DELETE(relativePath string, handlers ...any) RouteGroup
 
 	// PATCH 注册一个PATCH请求处理器
-	PATCH(relativePath string, handlers ...interface{}) RouteGroup
+	PATCH(relativePath string, handlers ...any) RouteGroup
 
 	// HEAD 注册一个HEAD请求处理器
-	HEAD(relativePath string, handlers ...interface{}) RouteGroup
+	HEAD(relativePath string, handlers ...any) RouteGroup
 
 	// OPTIONS 注册一个OPTIONS请求处理器
-	OPTIONS(relativePath string, handlers ...interface{}) RouteGroup
+	OPTIONS(relativePath string, handlers ...any) RouteGroup
 }
 
 // ServerOptions 定义了创建服务器的选项
@@ -64,7 +60,7 @@ type ServerOptions any
 
 // NewServer 创建一个新的REST服务器实例
 func NewServer(method string, opts ...ServerOptions) Server {
-	factory, exists := serverFactories[method]
+	factory, exists := ServerFactories[method]
 	if !exists {
 		return nil
 	}

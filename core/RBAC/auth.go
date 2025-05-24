@@ -6,7 +6,6 @@ import (
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/errors/code"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -17,11 +16,6 @@ type Authenticator struct {
 	publicKey     string
 	signingMethod jwt.SigningMethod
 	claims        func() jwt.Claims
-}
-
-type AuthenMethod interface {
-	Authenticate(ctx gin.Context, FullMethod string) error
-	validateAuth(ctx gin.Context, tokenString string, FullMethod string) error
 }
 
 func NewAuthenticator(publiKey string, enforcer *casbin.RBACEnforcer, opts ...AuthOptions) (*Authenticator, error) {
@@ -58,12 +52,12 @@ func NewAuthenticator(publiKey string, enforcer *casbin.RBACEnforcer, opts ...Au
 	return auth, nil
 }
 
-func (auth *Authenticator) Authenticate(ctx *gin.Context) error {
-	role, err := cosjwt.ParseRoleFromHTTPContext(ctx, auth.publicKey)
+func (auth *Authenticator) Authenticate(token, path, method string) error {
+	role, err := cosjwt.ParseRoleFromHTTPContext(token, auth.publicKey)
 	if err != nil {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "failed to parse role from context: %v", err)
 	}
-	ok := auth.validateAuth(ctx, role)
+	ok := auth.validateAuth(role, path, method)
 	if !ok {
 		return errors.WithCode(code.ErrInvalidAuthHeader, "failed to verify auth")
 	}
@@ -71,8 +65,8 @@ func (auth *Authenticator) Authenticate(ctx *gin.Context) error {
 	return nil
 }
 
-func (auth *Authenticator) validateAuth(ctx *gin.Context, role string) bool {
-	ok, err := auth.RBACEnforcer.VerifyAuth(role, ctx.Request.URL.Path, ctx.Request.Method)
+func (auth *Authenticator) validateAuth(role, path, method string) bool {
+	ok, err := auth.RBACEnforcer.VerifyAuth(role, path, method)
 	if err != nil {
 		return false
 	}

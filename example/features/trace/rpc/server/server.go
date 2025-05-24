@@ -8,7 +8,8 @@ import (
 	"github.com/taluos/Malt/example/features/trace/rpc/service"
 	pb "github.com/taluos/Malt/example/test_proto"
 	"github.com/taluos/Malt/pkg/log"
-	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc"
+	grpcServer "github.com/taluos/Malt/server/rpc/rpc-grpc"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -31,11 +32,11 @@ func NewTracerProvider(name string) *maltAgent.Agent {
 	return agent
 }
 
-func rpcRun(srv *rpcserver.Server, ctx context.Context) error {
+func rpcRun(srv rpcserver.Server, ctx context.Context) error {
 	return srv.Start(ctx)
 }
 
-func rpcStop(srv *rpcserver.Server, ctx context.Context) error {
+func rpcStop(srv rpcserver.Server, ctx context.Context) error {
 	<-ctx.Done() // 等待接收退出信号
 	log.Info("RPC server stopping")
 	sctx, cancal := context.WithTimeout(context.Background(), 5*time.Second)
@@ -49,15 +50,16 @@ func main() {
 	globalAgent := NewTracerProvider("Rpc Server")
 	defer globalAgent.Shutdown(context.Background())
 
-	rpcServer := rpcserver.NewServer(
-		rpcserver.WithAddress("127.0.0.1:50051"),
-		rpcserver.WithTimeout(5*time.Second),
-		rpcserver.WithEnableTracing(true),
-		rpcserver.WithAgent(globalAgent),
+	rpcServer := rpcserver.NewServer("grpc",
+		grpcServer.WithServerAddress("127.0.0.1:50051"),
+		grpcServer.WithServerTimeout(5*time.Second),
+		grpcServer.WithServerEnableTracing(true),
+		grpcServer.WithServerAgent(globalAgent),
 	)
 
+	rpcServer = rpcServer.RegisterService(pb.RegisterGreeterServer, &service.GreeterServer{})
 	// 注册服务
-	pb.RegisterGreeterServer(rpcServer.Server, &service.GreeterServer{})
+	// pb.RegisterGreeterServer(rpcServer.Server, &service.GreeterServer{})
 
 	log.Info("RPC server starting")
 	err = rpcRun(rpcServer, ctx)

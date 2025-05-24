@@ -7,8 +7,7 @@ import (
 
 	"github.com/taluos/Malt/pkg/log"
 	restserver "github.com/taluos/Malt/server/rest"
-	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
-	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc"
 
 	"github.com/taluos/Malt/core/registry"
 )
@@ -30,7 +29,6 @@ type options struct {
 
 	restserver []restserver.Server
 	rpcserver  []rpcserver.Server
-	rpcclient  []rpcclient.Client
 }
 
 // 函数选项模式
@@ -109,11 +107,5 @@ func WithRESTServer(restserver ...restserver.Server) Option {
 func WithRPCServer(rpcserver ...rpcserver.Server) Option {
 	return func(o *options) {
 		o.rpcserver = rpcserver
-	}
-}
-
-func WithRPCClient(rpcclient ...rpcclient.Client) Option {
-	return func(o *options) {
-		o.rpcclient = rpcclient
 	}
 }

@@ -9,7 +9,8 @@ import (
 	"github.com/taluos/Malt/pkg/log"
 	restserver "github.com/taluos/Malt/server/rest"
 	ginServer "github.com/taluos/Malt/server/rest/rest-gin"
-	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc"
+	grpcServer "github.com/taluos/Malt/server/rpc/rpc-grpc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -21,17 +22,17 @@ func main() {
 	rpcServerSet := []rpcserver.Server{}
 
 	restServerInstance := restserver.NewServer("gin",
-		ginServer.WithPort(8080),
+		ginServer.WithAddress("127.0.0.1:8080"),
 		ginServer.WithMiddleware(gin.Recovery()),
 	)
 
-	rpcServerInstance := rpcserver.NewServer(
-		rpcserver.WithAddress("127.0.0.1:50051"),
-		rpcserver.WithTimeout(5*time.Second),
+	rpcServerInstance := rpcserver.NewServer("grpc",
+		grpcServer.WithServerAddress("127.0.0.1:50051"),
+		grpcServer.WithServerTimeout(5*time.Second),
 	)
 
 	restServerSet = append(restServerSet, restServerInstance)
-	rpcServerSet = append(rpcServerSet, *rpcServerInstance)
+	rpcServerSet = append(rpcServerSet, rpcServerInstance)
 
 	consulClient, err := consulApi.NewClient(&consulApi.Config{Address: "192.168.142.136:8500"})
 	if err != nil {

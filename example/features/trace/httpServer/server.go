@@ -68,7 +68,7 @@ func main() {
 	defer globalAgent.Shutdown(ctx)
 
 	r := httpserver.NewServer("gin",
-		ginServer.WithPort(8080),
+		ginServer.WithAddress("127.0.0.1:8080"),
 		ginServer.WithEnableTracing(true),
 		ginServer.WithAgent(globalAgent),
 		ginServer.WithMiddleware(gin.Recovery()),

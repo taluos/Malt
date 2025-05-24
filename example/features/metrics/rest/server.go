@@ -27,7 +27,7 @@ func main() {
 	}
 
 	r := httpserver.NewServer("gin",
-		ginServer.WithPort(8090),
+		ginServer.WithAddress("127.0.0.1:8080"),
 		ginServer.WithEnableProfiling(true),
 		ginServer.WithEnableTracing(true),
 		ginServer.WithEnableMetrics(true),

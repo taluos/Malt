@@ -2,14 +2,13 @@ package httpserver
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/log"
+	"github.com/taluos/Malt/pkg/validations"
 	middleware "github.com/taluos/Malt/server/rest/rest-gin/internal/middlewares"
 	"github.com/taluos/Malt/server/rest/rest-gin/internal/pprof"
-	"github.com/taluos/Malt/server/rest/rest-gin/internal/validations"
 
 	"github.com/gin-gonic/gin"
 	uTranslator "github.com/go-playground/universal-translator"
@@ -34,12 +33,12 @@ type ServerMethod interface {
 
 func NewServer(opts ...ServerOptions) *Server {
 	o := &serverOptions{
-		name:  defaultName,
-		port:  defaultPort,
-		mode:  gin.DebugMode, // debug / release / test
-		trans: defaultrans,
+		name:    defaultName,
+		address: defaultAddr,
+		mode:    gin.DebugMode, // debug / release / test
+		trans:   defaultrans,
 
-		healthz:         true,
+		enableHealth:    true,
 		enableProfiling: true,
 		enableMetrics:   false,
 		enableTracing:   false,
@@ -74,7 +73,7 @@ func NewServer(opts ...ServerOptions) *Server {
 	s.Use(o.middlewares...)
 
 	// 配置健康检查
-	if s.opts.healthz {
+	if s.opts.enableHealth {
 		s.GET("/health", func(c *gin.Context) {
 			c.String(200, "ok")
 		})
@@ -123,15 +122,15 @@ func (s *Server) Start(ctx context.Context) error {
 		log.Infof("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
 
-	log.Infof("[HTTP] server is running on port %d", s.opts.port)
+	log.Infof("[HTTP] server is running on %d", s.opts.address)
 
 	_ = s.SetTrustedProxies(s.opts.trustedProxies)
 
-	addr := fmt.Sprintf(":%d", s.opts.port)
+	// addr := fmt.Sprintf(":%d", s.opts.address)
 
 	s.rootCtx = ctx
 	s.server = &http.Server{
-		Addr:    addr,
+		Addr:    s.opts.address,
 		Handler: s.Engine,
 	}
 
@@ -146,7 +145,7 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) Stop(ctx context.Context) error {
 	var err error
 
-	log.Infof("[HTTP] server is stopping on port %d", s.opts.port)
+	log.Infof("[HTTP] server is stopping on %d", s.opts.address)
 
 	err = s.server.Shutdown(ctx)
 	if err != nil {
@@ -154,7 +153,7 @@ func (s *Server) Stop(ctx context.Context) error {
 		return errors.Wrapf(err, "[HTTP] stop server failed")
 	}
 
-	log.Infof("[HTTP] server is stopped on port %d", s.opts.port)
+	log.Infof("[HTTP] server is stopped on %d", s.opts.address)
 
 	return err
 }

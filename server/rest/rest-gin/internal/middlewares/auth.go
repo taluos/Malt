@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	auth "github.com/taluos/Malt/core/auth"
+	"github.com/taluos/Malt/server/rest/rest-gin/internal/auth"
 
 	"github.com/gin-gonic/gin"
 )

@@ -11,7 +11,7 @@ import (
 func RestInit() httpserver.Server {
 
 	srv := httpserver.NewServer("gin",
-		ginServer.WithPort(8080),
+		ginServer.WithAddress("127.0.0.1:8080"),
 		ginServer.WithMode("debug"),
 	)
 

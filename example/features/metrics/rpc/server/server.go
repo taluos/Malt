@@ -10,28 +10,31 @@ import (
 	"github.com/taluos/Malt/example/features/metrics/rpc/service"
 	pb "github.com/taluos/Malt/example/test_proto"
 	"github.com/taluos/Malt/pkg/log"
-	rpcserver "github.com/taluos/Malt/server/rpc/rpcServer"
+	rpcserver "github.com/taluos/Malt/server/rpc"
+	grpcServer "github.com/taluos/Malt/server/rpc/rpc-grpc"
 )
 
-func rpcServerInit() *rpcserver.Server {
+func rpcServerInit() rpcserver.Server {
 	// 创建 gRPC Server，可根据需要自定义监听地址、超时时间等
-	s := rpcserver.NewServer(
-		rpcserver.WithAddress("127.0.0.1:8090"),
-		rpcserver.WithTimeout(5*time.Second),
-		rpcserver.WithEnableMetrics(true),
+	s := rpcserver.NewServer("grpc",
+		grpcServer.WithServerAddress("127.0.0.1:8090"),
+		grpcServer.WithServerTimeout(5*time.Second),
+		grpcServer.WithServerEnableMetrics(true),
 	)
 
 	// 注册服务
-	pb.RegisterGreeterServer(s.Server, &service.GreeterServer{})
+	s = s.RegisterService(pb.RegisterGreeterServer, &service.GreeterServer{})
+	// pb.RegisterGreeterServer(s.Server, &service.GreeterServer{})
 
 	return s
 }
 
-func rpcRun(srv *rpcserver.Server, ctx context.Context) error {
+func rpcRun(srv rpcserver.Server, ctx context.Context) error {
 	return srv.Start(ctx)
 }
 
-func rpcStop(srv *rpcserver.Server, ctx context.Context) error {
+func rpcStop(srv rpcserver.Server, ctx context.Context) error {
+	<-ctx.Done()
 	log.Info("RPC server stopping")
 	sctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -2,12 +2,15 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
 	maltAgent "github.com/taluos/Malt/core/trace"
 	pb "github.com/taluos/Malt/example/test_proto"
-	rpcclient "github.com/taluos/Malt/server/rpc/rpcClient"
+	rpcclient "github.com/taluos/Malt/server/rpc"
+	grpcClient "github.com/taluos/Malt/server/rpc/rpc-grpc"
+	"google.golang.org/grpc"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/sdk/resource"
@@ -38,12 +41,12 @@ func Run(ctx context.Context) error {
 
 	time.Sleep(time.Second * 1)
 	// 创建 gRPC 客户端，可根据需要自定义连接地址、超时时间等
-	c, err := rpcclient.NewClient(
-		rpcclient.WithEndpoint("127.0.0.1:50051"),
-		rpcclient.WithTimeout(5*time.Second),
-		rpcclient.WithInsecure(true),
-		rpcclient.WithEnableTracing(true),
-		rpcclient.WithAgent(globalAgent),
+	c, err := rpcclient.NewClient("grpc",
+		grpcClient.WithClientEndpoint("127.0.0.1:50051"),
+		grpcClient.WithClientTimeout(5*time.Second),
+		grpcClient.WithClientInsecure(true),
+		grpcClient.WithClientEnableTracing(true),
+		grpcClient.WithClientAgent(globalAgent),
 	)
 
 	if err != nil {
@@ -51,7 +54,11 @@ func Run(ctx context.Context) error {
 	}
 
 	// 创建 Greeter 客户端
-	client := pb.NewGreeterClient(c.ClientConn)
+	conn, ok := c.Conn().(*grpc.ClientConn)
+	if !ok {
+		return fmt.Errorf("无法将连接转换为 grpc.ClientConn")
+	}
+	client := pb.NewGreeterClient(conn)
 
 	// 调用 SayHello 方法
 	resp, err := client.SayHello(ctx, &pb.HelloRequest{Name: "Malt用户"})

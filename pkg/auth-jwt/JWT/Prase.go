@@ -8,16 +8,15 @@ import (
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/errors/code"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
 // ParseRoleFromContext 从 gin.Context 中解析 JWT Token 的角色
-func ParseRoleFromHTTPContext(c *gin.Context, publiKey string) (string, error) {
-	token, err := ParseTokenFromHTTPContext(c)
-	if err != nil {
-		return "", errors.Wrapf(err, "parse token failed.")
-	}
+func ParseRoleFromHTTPContext(token string, publiKey string) (string, error) {
+	//token, err := ParseTokenFromHTTPContext(c)
+	//if err != nil {
+	//	return "", errors.Wrapf(err, "parse token failed.")
+	// }
 
 	role, err := parseRoleFormToken(publiKey, token)
 	if err != nil {
@@ -28,8 +27,8 @@ func ParseRoleFromHTTPContext(c *gin.Context, publiKey string) (string, error) {
 }
 
 // ParseTokenFromContext 从 gin.Context 中解析 JWT Token
-func ParseTokenFromHTTPContext(c *gin.Context) (string, error) {
-	authHeader := c.GetHeader("Authorization")
+func ParseTokenFromHTTPContext(authHeader string) (string, error) {
+	// authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		// Authorization header not found.
 		return "", errors.New("Authorization header not found.")
