@@ -1,13 +1,12 @@
 package discovery
 
 import (
-	"github.com/taluos/Malt/pkg/errors"
-
-	"github.com/taluos/Malt/core/registry"
-
 	"context"
 	"strings"
 	"time"
+
+	"github.com/taluos/Malt/core/registry"
+	"github.com/taluos/Malt/pkg/errors"
 
 	"google.golang.org/grpc/resolver"
 )

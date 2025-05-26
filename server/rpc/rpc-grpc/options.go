@@ -46,6 +46,7 @@ type serverOptions struct {
 	enableMetrics     bool // 是否启用指标
 	enableHealthCheck bool // 是否启用健康检查
 	enableReflection  bool // 是否启用反射
+	enableInsecure    bool // 是否启用不安全连接
 
 	histogramVecOpts *metric.HistogramVecOpts
 	counterVecOpts   *metric.CounterVecOpts

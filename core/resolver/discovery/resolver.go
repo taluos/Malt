@@ -7,18 +7,15 @@
 package discovery
 
 import (
+	"context"
 	"encoding/json"
 	"net/url"
 	"strconv"
-
-	"github.com/taluos/Malt/pkg/log"
-
-	"github.com/taluos/Malt/pkg/errors"
+	"time"
 
 	"github.com/taluos/Malt/core/registry"
-
-	"context"
-	"time"
+	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/log"
 
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
@@ -29,9 +26,6 @@ var _ resolver.Resolver = (*discoveryResolver)(nil)
 type discoveryResolver struct {
 	watcher registry.Watcher
 	cc      resolver.ClientConn
-
-	hosts map[string]resolver.Address
-	rn    func()
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -54,7 +48,7 @@ func (r *discoveryResolver) watch() {
 				return
 			}
 			log.Errorf("[resolver] Failed to watch discorvery endpoint: %v", err)
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(watchSleep)
 			continue
 		}
 		r.update(ins)
@@ -65,7 +59,7 @@ func (r *discoveryResolver) update(ins []*registry.ServiceInstance) {
 	address := make([]resolver.Address, 0)
 	endpointes := make(map[string]struct{})
 	for _, in := range ins {
-		endpoint, err := ParseEndpoint(in.Endpoints, "grpc", r.insecure)
+		endpoint, err := ParseEndpoint(in.Endpoints, "grpc", !r.insecure)
 		if err != nil {
 			log.Errorf("[resolver] Failed to parse disconvery endpoint: %v", err)
 			continue
@@ -125,10 +119,10 @@ func parseAttributes(md map[string]string) *attributes.Attributes {
 	return a
 }
 
-func NewEndpoint(schema, host string, insecure bool) *url.URL {
+func NewEndpoint(schema, host string, isSecure bool) *url.URL {
 	var query string
-	if insecure {
-		query = "insecure=true"
+	if isSecure {
+		query = "isSecure=true"
 	}
 	return &url.URL{
 		Scheme:   schema,
@@ -137,14 +131,14 @@ func NewEndpoint(schema, host string, insecure bool) *url.URL {
 	}
 }
 
-func ParseEndpoint(endpoints []string, schema string, insecure bool) (string, error) {
+func ParseEndpoint(endpoints []string, schema string, isSecure bool) (string, error) {
 	for _, eendpoint := range endpoints {
 		u, err := url.Parse(eendpoint)
 		if err != nil {
 			return "", err
 		}
 		if u.Scheme == schema {
-			if IsInsecure(u) == insecure {
+			if IsSecure(u) == isSecure { // || isSecure
 				return u.Host, nil
 			}
 		}
@@ -152,8 +146,8 @@ func ParseEndpoint(endpoints []string, schema string, insecure bool) (string, er
 	return "", nil
 }
 
-func IsInsecure(u *url.URL) bool {
-	ok, err := strconv.ParseBool(u.Query().Get("insecure"))
+func IsSecure(u *url.URL) bool {
+	ok, err := strconv.ParseBool(u.Query().Get("isSecure"))
 	if err != nil {
 		return false
 	}

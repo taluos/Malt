@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	rpcmetadata "github.com/taluos/Malt/api/rpcmetadata"
@@ -26,6 +27,7 @@ func TestAuthenticate_ValidToken(t *testing.T) {
 	assert.NotNil(t, jwtInfo)
 	// 生成合法token
 	token, err := JWT.GenerateJWT(*jwtInfo)
+	fmt.Println(token)
 	assert.NoError(t, err)
 
 	// 构造metadata
@@ -34,7 +36,7 @@ func TestAuthenticate_ValidToken(t *testing.T) {
 	}
 	ctx := rpcmetadata.NewServerContext(context.Background(), md)
 
-	auth, _ := NewAuthenticator(func(token *jwt.Token) (interface{}, error) {
+	auth, _ := NewAuthenticator(func(token *jwt.Token) (any, error) {
 		return jwt.ParseECPublicKeyFromPEM([]byte(JWT.TestPublicKey))
 	})
 

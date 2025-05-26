@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/taluos/Malt/api/metadata"
+	"github.com/taluos/Malt/core/resolver/discovery"
 	"github.com/taluos/Malt/pkg/host"
 	"github.com/taluos/Malt/pkg/log"
 	"github.com/taluos/Malt/server/rpc/rpc-grpc/internal/serverinterceptors"
@@ -194,10 +195,12 @@ func (s *Server) listenAndEndpoint() error {
 		return err
 	}
 
-	s.opt.endpoint = &url.URL{
-		Scheme: "grpc",
-		Host:   address,
-	}
+	//s.opt.endpoint = &url.URL{
+	//	Scheme: "grpc",
+	//	Host:   address,
+	//}
+
+	s.opt.endpoint = discovery.NewEndpoint("grpc", address, s.opt.enableInsecure)
 
 	return nil
 }

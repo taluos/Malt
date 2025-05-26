@@ -171,7 +171,6 @@ func (r *Registry) resolve(ctx context.Context, ss *serviceSet) error {
 		listServices = func(ctx context.Context, service string, index uint64, passingOnly bool) ([]*registry.ServiceInstance, uint64, error) {
 			timeoutCtx, cancel := context.WithTimeout(ctx, r.timeout)
 			defer cancel()
-
 			return r.cli.Service(timeoutCtx, service, index, passingOnly)
 		}
 	}

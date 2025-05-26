@@ -29,8 +29,8 @@ type App struct {
 	cancel context.CancelFunc
 
 	// 服务实例
-	instance *registry.ServiceInstance
-	mu       sync.RWMutex
+	instances []*registry.ServiceInstance
+	mu        sync.RWMutex
 
 	opts options
 }
@@ -44,20 +44,16 @@ func New(opts ...Option) *App {
 		stopTimeout:      defaltTimeout,
 	}
 
-	if o.id == "" {
-		id, err := uuid.NewUUID()
-		if err != nil {
-			log.Errorf("generate uuid error: %s", err)
-			return nil
-		}
+	if id, err := uuid.NewUUID(); err == nil {
 		o.id = id.String()
 	}
-	// 初始化上下文
-	ctx, cancel := context.WithCancel(context.Background())
 
 	for _, opt := range opts {
 		opt(&o)
 	}
+
+	// 初始化上下文
+	ctx, cancel := context.WithCancel(context.Background())
 
 	return &App{
 		ctx:    ctx,
@@ -83,24 +79,25 @@ func (a *App) Metadata() map[string]string {
 }
 
 func (a *App) Endpoint() []string {
-	if a.instance != nil {
-		return a.instance.Endpoints
+	var endpoints []string
+	for _, endpoint := range a.opts.endpoints {
+		endpoints = append(endpoints, endpoint.String())
 	}
-	return nil
+	return endpoints
 }
 
 // 服务启动
 func (app *App) Run() error {
 
 	// 获取注册信息
-	instance, err := app.buildInstance()
+	instances, err := app.buildInstance()
 	if err != nil {
 		return err
 	}
 
 	// 保护实列
 	app.mu.Lock()
-	app.instance = instance
+	app.instances = instances
 	app.mu.Unlock()
 
 	sctx := NewContext(app.ctx, app)
@@ -147,14 +144,18 @@ func (app *App) Run() error {
 		})
 	}
 
+	wg.Wait()
+
 	// register service
 	if app.opts.registrar != nil {
 		rctx, cancel := context.WithTimeout(ctx, app.opts.registrarTimeout)
 		defer cancel()
-		err = app.opts.registrar.Register(rctx, instance)
-		if err != nil {
-			log.Errorf("register service error: %s", err)
-			return err
+		for _, instance := range app.instances {
+			err = app.opts.registrar.Register(rctx, instance)
+			if err != nil {
+				log.Errorf("register service error: %s", err)
+				return err
+			}
 		}
 	}
 
@@ -178,21 +179,22 @@ func (app *App) Run() error {
 
 // 服务停止
 func (app *App) Stop() error {
-
 	app.mu.Lock()
-	instance := app.instance
+	instances := app.instances
 	app.mu.Unlock()
 
-	if app.opts.registrar != nil && app.instance != nil {
-		rctx, cancel := context.WithTimeout(NewContext(app.ctx, app), app.opts.stopTimeout)
+	if app.opts.registrar != nil && instances != nil {
+		ctx, cancel := context.WithTimeout(NewContext(app.ctx, app), app.opts.stopTimeout)
 		defer cancel()
-		err := app.opts.registrar.Deregister(rctx, instance)
-		if err != nil {
-			log.Errorf("deregister service error: %s", err)
-			return err
+		for _, instance := range app.instances {
+			err := app.opts.registrar.Deregister(ctx, instance)
+			if err != nil {
+				log.Errorf("deregister service error: %s", err)
+				return err
+			}
 		}
-	}
 
+	}
 	if app.cancel != nil {
 		app.cancel()
 	}
@@ -201,26 +203,24 @@ func (app *App) Stop() error {
 }
 
 // 创建服务注册结构体
-func (app *App) buildInstance() (*registry.ServiceInstance, error) {
+func (app *App) buildInstance() ([]*registry.ServiceInstance, error) {
 	endpoints := make([]string, 0)
-	tags := make([]string, 0)
+	//tags := make([]string, 0)
+	instences := make([]*registry.ServiceInstance, 0)
 
 	for _, endendpoint := range app.opts.endpoints {
 		endpoints = append(endpoints, endendpoint.String())
+		instences = append(instences, &registry.ServiceInstance{
+			ID:        uuid.NewString(),
+			Name:      app.opts.name + "-" + endendpoint.Scheme,
+			Version:   app.opts.version,
+			Endpoints: []string{endendpoint.String()},
+			Metadata:  app.opts.metadata,
+			Tags:      []string{endendpoint.Scheme},
+		})
 	}
-
-	tags = append(tags, app.opts.tags...)
-
-	instance := &registry.ServiceInstance{
-		ID:        app.opts.id,
-		Name:      app.opts.name,
-		Version:   app.opts.version,
-		Endpoints: endpoints,
-		Metadata:  app.opts.metadata,
-		Tags:      tags,
-	}
-
-	return instance, nil
+	log.Infof("Create %d instances", len(instences))
+	return instences, nil
 }
 
 type appKey struct{}

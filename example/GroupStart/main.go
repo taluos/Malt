@@ -1,12 +1,17 @@
 package main
 
 import (
+	"fmt"
+	"net/url"
 	"time"
 
 	consulApi "github.com/hashicorp/consul/api"
 	malt "github.com/taluos/Malt"
 	consulRegistry "github.com/taluos/Malt/core/registry/consul"
+	"github.com/taluos/Malt/example/GroupStart/service"
+	pb "github.com/taluos/Malt/example/test_proto"
 	"github.com/taluos/Malt/pkg/log"
+	getport "github.com/taluos/Malt/pkg/port"
 	restserver "github.com/taluos/Malt/server/rest"
 	ginServer "github.com/taluos/Malt/server/rest/rest-gin"
 	rpcserver "github.com/taluos/Malt/server/rpc"
@@ -21,15 +26,21 @@ func main() {
 	restServerSet := []restserver.Server{}
 	rpcServerSet := []rpcserver.Server{}
 
+	port1, _ := getport.GetFreePort()
+	address1 := fmt.Sprintf("%s:%d", "10.60.82.146", port1)
 	restServerInstance := restserver.NewServer("gin",
-		ginServer.WithAddress("127.0.0.1:8080"),
+		ginServer.WithHealthz(true),
+		ginServer.WithAddress(address1),
 		ginServer.WithMiddleware(gin.Recovery()),
 	)
 
+	port2, _ := getport.GetFreePort()
+	address2 := fmt.Sprintf("%s:%d", "10.60.82.146", port2)
 	rpcServerInstance := rpcserver.NewServer("grpc",
-		grpcServer.WithServerAddress("127.0.0.1:50051"),
+		grpcServer.WithServerAddress(address2),
 		grpcServer.WithServerTimeout(5*time.Second),
 	)
+	rpcServerInstance.RegisterService(pb.RegisterGreeterServer, service.NewGreeterServer())
 
 	restServerSet = append(restServerSet, restServerInstance)
 	rpcServerSet = append(rpcServerSet, rpcServerInstance)
@@ -46,11 +57,18 @@ func main() {
 		consulRegistry.WithHealthCheckInterval(10),
 	)
 
+	// 创建URL端点
+	restEndpoint, _ := url.Parse(fmt.Sprintf("http://%s", address1))
+	// restEndpoint.Query().Add("insecure", "true")
+	rpcEndpoint, _ := url.Parse(fmt.Sprintf("grpc://%s", address2))
+	// rpcEndpoint.Query().Add("insecure", "true")
+
 	var App = malt.New(
 		malt.WithId(uuid.New().String()),
 		malt.WithName("Malt"),
-		malt.WithTags([]string{"Rest:8080", "RPC:50051"}),
-		malt.WithMetadata(map[string]string{"env": "dev", "Rest": "8080", "RPC": "50051"}),
+		// 添加Endpoints
+		malt.WithEndpoints([]*url.URL{restEndpoint, rpcEndpoint}),
+		// 可以保留元数据
 		malt.WithRegistrarTimeout(5*time.Second),
 		malt.WithStopTimeout(5*time.Second),
 

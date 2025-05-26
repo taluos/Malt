@@ -4,8 +4,6 @@ import "time"
 
 const (
 	DefaultExpireTime = 5 * time.Minute
-	DefaultMaxRefresh = 10 * time.Minute
-	TokenExpireTime   = time.Minute * 5
 
 	TestPrivateKey = `-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIFfa14vgswEH/ySQmOaZ+padFPNs2db03TMDG0SzF/1ZoAoGCCqGSM49

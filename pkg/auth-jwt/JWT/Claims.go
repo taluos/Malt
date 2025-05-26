@@ -14,23 +14,21 @@ type CustomClaims struct {
 	Role       string `json:"role"`
 }
 
-func NewCustomClaims(userID, fullMethod, role string, expireTime time.Duration, refreshTime time.Duration) *CustomClaims {
+func NewCustomClaims(userID, fullMethod, role string, expireTime time.Duration) *CustomClaims {
 	now := time.Now()
 	customClaims := &CustomClaims{
 		UserID:     userID,
 		FullMethod: fullMethod,
 		Role:       role,
 		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(now),
+			NotBefore: jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(DefaultExpireTime)),
-			NotBefore: jwt.NewNumericDate(now.Add(-DefaultMaxRefresh)),
 		},
 	}
 
 	if expireTime != 0 {
 		customClaims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(now.Add(expireTime))
-	}
-	if refreshTime != 0 {
-		customClaims.RegisteredClaims.NotBefore = jwt.NewNumericDate(now.Add(-refreshTime))
 	}
 
 	return customClaims

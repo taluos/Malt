@@ -22,7 +22,7 @@ func GenerateJWT(jwtInfo JwtInfo) (string, error) {
 	}
 
 	// 创建claims
-	claims := NewCustomClaims(jwtInfo.userID, jwtInfo.fullMethod, jwtInfo.role, jwtInfo.Timeout, jwtInfo.MaxRefresh)
+	claims := NewCustomClaims(jwtInfo.userID, jwtInfo.fullMethod, jwtInfo.role, jwtInfo.Timeout)
 
 	// 创建token
 	token := jwt.NewWithClaims(jwtInfo.signingMethod, claims)

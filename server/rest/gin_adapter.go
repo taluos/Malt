@@ -38,17 +38,17 @@ func newGinServer(opts ...ServerOptions) Server {
 
 // Start 实现Server.Start
 func (s *ginServer) Start(ctx context.Context) error {
-	return s.Start(ctx)
+	return s.server.Start(ctx)
 }
 
 // Stop 实现Server.Stop
 func (s *ginServer) Stop(ctx context.Context) error {
-	return s.Stop(ctx)
+	return s.server.Stop(ctx)
 }
 
 // Engine 实现Server.Engine
 func (s *ginServer) Engine() any {
-	return s.Engine
+	return s.server.Engine
 }
 
 // Group 实现Server.Group

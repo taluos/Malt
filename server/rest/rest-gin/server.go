@@ -122,7 +122,7 @@ func (s *Server) Start(ctx context.Context) error {
 		log.Infof("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
 
-	log.Infof("[HTTP] server is running on %d", s.opts.address)
+	log.Infof("[HTTP] server is running on %v", s.opts.address)
 
 	_ = s.SetTrustedProxies(s.opts.trustedProxies)
 
@@ -145,7 +145,7 @@ func (s *Server) Start(ctx context.Context) error {
 func (s *Server) Stop(ctx context.Context) error {
 	var err error
 
-	log.Infof("[HTTP] server is stopping on %d", s.opts.address)
+	log.Infof("[HTTP] server is stopping on %v", s.opts.address)
 
 	err = s.server.Shutdown(ctx)
 	if err != nil {
@@ -153,7 +153,7 @@ func (s *Server) Stop(ctx context.Context) error {
 		return errors.Wrapf(err, "[HTTP] stop server failed")
 	}
 
-	log.Infof("[HTTP] server is stopped on %d", s.opts.address)
+	log.Infof("[HTTP] server is stopped on %v", s.opts.address)
 
 	return err
 }

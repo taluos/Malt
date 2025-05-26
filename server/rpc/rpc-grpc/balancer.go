@@ -18,6 +18,15 @@ var (
 	_ balancer.Picker    = &balancerPicker{}
 )
 
+type balancerBuilder struct {
+	builder selector.Builder
+}
+
+// balancerPicker is a grpc picker.
+type balancerPicker struct {
+	selector selector.Selector
+}
+
 func InitBuilder() {
 	b := base.NewBalancerBuilder(
 		balancerName,
@@ -27,10 +36,6 @@ func InitBuilder() {
 		base.Config{HealthCheck: true},
 	)
 	balancer.Register(b)
-}
-
-type balancerBuilder struct {
-	builder selector.Builder
 }
 
 // Build creates a grpc Picker.
@@ -53,11 +58,6 @@ func (b *balancerBuilder) Build(info base.PickerBuildInfo) balancer.Picker {
 	}
 	p.selector.Apply(nodes)
 	return p
-}
-
-// balancerPicker is a grpc picker.
-type balancerPicker struct {
-	selector selector.Selector
 }
 
 // Pick pick instances.

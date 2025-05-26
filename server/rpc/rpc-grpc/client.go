@@ -28,7 +28,7 @@ func NewClient(opts ...ClientOptions) (*Client, error) {
 	o := clientOptions{
 		endpoint: "127.0.0.1:0",
 
-		insecure:      false,
+		insecure:      true,
 		enableTracing: false,
 		enableMetrics: false,
 
@@ -133,10 +133,12 @@ func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 	// 服务发现
 	if opts.discovery != nil {
 		grpcOpts = append(grpcOpts,
-			grpc.WithResolvers(
-				discovery.NewBuilder(
-					opts.discovery,
-					discovery.WithInsecure(opts.insecure))))
+			grpc.WithResolvers(discovery.NewBuilder(
+				opts.discovery,
+				discovery.WithTimeout(opts.timeout),
+				discovery.WithInsecure(insecure),
+			),
+			))
 	} else {
 		grpcOpts = append(grpcOpts,
 			grpc.WithResolvers(direct.NewDirectBuilder()))

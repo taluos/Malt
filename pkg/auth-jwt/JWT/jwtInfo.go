@@ -7,9 +7,8 @@ import (
 )
 
 type JwtInfo struct {
-	Realm      string        `json:"realm"`
-	Timeout    time.Duration `json:"timeout"`
-	MaxRefresh time.Duration `json:"max_refresh"`
+	Realm   string        `json:"realm"`
+	Timeout time.Duration `json:"timeout"`
 
 	token         string
 	signingMethod jwt.SigningMethod
@@ -26,7 +25,6 @@ func NewJwtInfo(privateKey, userID, fullMethod, role string, opts ...JWTOption) 
 	jwtInfo := &JwtInfo{
 		Realm:         "JWT",
 		Timeout:       DefaultExpireTime,
-		MaxRefresh:    DefaultMaxRefresh,
 		signingMethod: jwt.SigningMethodES256, // 统一使用ECDSA
 		privateKey:    privateKey,
 		userID:        userID,
@@ -59,12 +57,6 @@ func WithRealm(realm string) JWTOption {
 func WithTimeout(timeout time.Duration) JWTOption {
 	return func(o *JwtInfo) {
 		o.Timeout = timeout
-	}
-}
-
-func WithMaxRefresh(maxRefresh time.Duration) JWTOption {
-	return func(o *JwtInfo) {
-		o.MaxRefresh = maxRefresh
 	}
 }
 

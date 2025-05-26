@@ -166,7 +166,9 @@ func (c *Client) Register(ctx context.Context, svc *registry.ServiceInstance, en
 		checkAddresses = append(checkAddresses, net.JoinHostPort(addr, strconv.FormatUint(port, 10)))
 		addresses[raw.Scheme] = api.ServiceAddress{Address: endpoint, Port: int(port)}
 	}
-	tags := []string{fmt.Sprintf("version=%s", svc.Version)}
+	tags := []string{
+		fmt.Sprintf("version=%s", svc.Version),
+	}
 	tags = append(tags, svc.Tags...)
 	asr := &api.AgentServiceRegistration{
 		ID:              svc.ID,

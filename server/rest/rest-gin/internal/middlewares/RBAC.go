@@ -18,9 +18,12 @@ func RBACMiddleware(authenticator *rbac.Authenticator) gin.HandlerFunc {
 		}
 	}
 	return func(c *gin.Context) {
-		//authHeader := c.GetHeader("Authorization")
-		//tokenString, err := JWT.ParseTokenFromHTTPContext(authHeader)
 		tokenString := getJWTToken(c)
+		if tokenString == "" {
+			log.Errorf("token is empty")
+			c.Abort()
+			return
+		}
 		err := authenticator.Authenticate(tokenString, c.Request.URL.Path, c.Request.Method)
 		if err != nil {
 			log.Errorf("authenticate error: %v", err)
