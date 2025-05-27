@@ -42,6 +42,10 @@ func NewServer(opts ...ServerOptions) *Server {
 		enableProfiling: true,
 		enableMetrics:   false,
 		enableTracing:   false,
+		enableCert:      false,
+
+		certFile: "",
+		keyFile:  "",
 
 		trustedProxies: []string{},
 		middlewares:    []gin.HandlerFunc{},
@@ -90,7 +94,6 @@ func NewServer(opts ...ServerOptions) *Server {
 		m.SetMetricPath("/metrics")
 		m.SetSlowTime(5)
 		m.SetDuration([]float64{0.1, 0.3, 1.2, 5, 10})
-
 		m.Use(s)
 	}
 
@@ -134,7 +137,12 @@ func (s *Server) Start(ctx context.Context) error {
 		Handler: s.Engine,
 	}
 
-	err = s.server.ListenAndServe()
+	if s.opts.enableCert && s.opts.certFile != "" && s.opts.keyFile != "" {
+		err = s.server.ListenAndServeTLS(s.opts.certFile, s.opts.keyFile)
+	} else {
+		err = s.server.ListenAndServe()
+	}
+
 	if err != nil && err != http.ErrServerClosed {
 		return errors.Wrapf(err, "[HTTP] server failed")
 	}

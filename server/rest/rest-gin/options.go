@@ -8,24 +8,29 @@ import (
 )
 
 type serverOptions struct {
-	name    string
-	address string
+	name    string // server name
+	address string // server address:  IP_ADDRESS:PORT
 
-	mode  string
-	trans string
+	mode  string // gin.ReleaseMode, gin.DebugMode, gin.TestMode
+	trans string // http, https
 
-	enableHealth    bool
-	enableProfiling bool
-	enableMetrics   bool
-	enableTracing   bool
+	enableHealth    bool // healthz
+	enableProfiling bool // pprof
+	enableMetrics   bool // metrics
+	enableTracing   bool // tracing
+	enableCert      bool // https cert
 
-	trustedProxies []string
-	middlewares    []gin.HandlerFunc
+	certFile string // https cert file
+	keyFile  string // https key file
 
-	agent        *maltAgent.Agent
-	authOperator *auth.AuthOperator
+	trustedProxies []string          // trusted proxies
+	middlewares    []gin.HandlerFunc // middlewares
+
+	agent        *maltAgent.Agent   // tracing agent
+	authOperator *auth.AuthOperator // auth operator
 }
 
+// ServerOptions is a function that takes a pointer to a serverOptions struct and modifies it.
 type ServerOptions func(*serverOptions)
 
 func WithName(name string) ServerOptions {
@@ -73,6 +78,24 @@ func WithEnableMetrics(enableMetrics bool) ServerOptions {
 func WithEnableTracing(enableTracing bool) ServerOptions {
 	return func(o *serverOptions) {
 		o.enableTracing = enableTracing
+	}
+}
+
+func WithEnableCert(enableCert bool) ServerOptions {
+	return func(o *serverOptions) {
+		o.enableCert = enableCert
+	}
+}
+
+func WithCertFile(certFile string) ServerOptions {
+	return func(o *serverOptions) {
+		o.certFile = certFile
+	}
+}
+
+func WithKeyFile(keyFile string) ServerOptions {
+	return func(o *serverOptions) {
+		o.keyFile = keyFile
 	}
 }
 

@@ -153,7 +153,7 @@ func (app *App) Run() error {
 		for _, instance := range app.instances {
 			err = app.opts.registrar.Register(rctx, instance)
 			if err != nil {
-				log.Errorf("register service error: %s", err)
+				log.Errorf("[Malt] register service error: %s", err)
 				return err
 			}
 		}
@@ -189,7 +189,7 @@ func (app *App) Stop() error {
 		for _, instance := range app.instances {
 			err := app.opts.registrar.Deregister(ctx, instance)
 			if err != nil {
-				log.Errorf("deregister service error: %s", err)
+				log.Errorf("[Malt] deregister service error: %s", err)
 				return err
 			}
 		}
@@ -219,7 +219,7 @@ func (app *App) buildInstance() ([]*registry.ServiceInstance, error) {
 			Tags:      []string{endendpoint.Scheme},
 		})
 	}
-	log.Infof("Create %d instances", len(instences))
+	log.Infof("[Malt] Create %d service", len(instences))
 	return instences, nil
 }
 
