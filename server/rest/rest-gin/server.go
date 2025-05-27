@@ -129,8 +129,6 @@ func (s *Server) Start(ctx context.Context) error {
 
 	_ = s.SetTrustedProxies(s.opts.trustedProxies)
 
-	// addr := fmt.Sprintf(":%d", s.opts.address)
-
 	s.rootCtx = ctx
 	s.server = &http.Server{
 		Addr:    s.opts.address,
