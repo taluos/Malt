@@ -28,7 +28,7 @@ func NewAutoStrategy(basic BasicStrategy, jwt JWTStrategy) AutoStrategy {
 }
 
 // AuthFunc defines auto strategy as the gin authentication middleware.
-func (a AutoStrategy) AuthFunc() gin.HandlerFunc {
+func (a *AutoStrategy) AuthFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		operator := AuthOperator{}
 		authHeader := strings.SplitN(c.Request.Header.Get("Authorization"), " ", 2)
@@ -46,9 +46,9 @@ func (a AutoStrategy) AuthFunc() gin.HandlerFunc {
 
 		switch authHeader[0] {
 		case "Basic":
-			operator.SetStrategy(a.basic)
+			operator.SetStrategy(&a.basic)
 		case "Bearer":
-			operator.SetStrategy(a.jwt)
+			operator.SetStrategy(&a.jwt)
 			// a.JWT.MiddlewareFunc()(c)
 		default:
 			internal.WriteResponse(c, errors.WithCode(code.ErrSignatureInvalid, "unrecognized Authorization header."), nil)

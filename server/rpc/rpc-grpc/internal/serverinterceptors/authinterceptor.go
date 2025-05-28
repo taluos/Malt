@@ -23,6 +23,7 @@ func SteamAuthorizeInterceptor(keyFunc jwt.Keyfunc, authenticator *auth.Authenti
 		}
 	}
 	return func(svr any, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) (err error) {
+		// Nomal JWT auth, without user ID and role, just validate the token
 		if err := authenticator.RPCAuthenticate(stream.Context(), "", info.FullMethod, ""); err != nil {
 			log.Errorf("auth failed: %s", err)
 			return errors.WithCode(code.ErrInvalidAuthHeader, "auth failed")

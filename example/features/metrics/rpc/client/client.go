@@ -1,25 +1,25 @@
 package client
 
 import (
-	"time"
-
-	pb "github.com/taluos/Malt/example/test_proto"
-	rpcclient "github.com/taluos/Malt/server/rpc"
-	grpcClient "github.com/taluos/Malt/server/rpc/rpc-grpc"
-	"google.golang.org/grpc"
-
 	"context"
 	"log"
+	"time"
+
+	rpcclient "github.com/taluos/Malt/client/rpc"
+	grpcClient "github.com/taluos/Malt/client/rpc/rpc-grpc"
+	pb "github.com/taluos/Malt/example/test_proto"
+
+	"google.golang.org/grpc"
 )
 
 // RPCClientInit 初始化 RPC 客户端
 func RPCClientInit() (rpcclient.Client, error) {
 	// 创建 gRPC 客户端，可根据需要自定义连接地址、超时时间等
 	c, err := rpcclient.NewClient("grpc",
-		grpcClient.WithClientEndpoint("127.0.0.1:8090"),
-		grpcClient.WithClientTimeout(5*time.Second),
-		grpcClient.WithClientInsecure(true),
-		grpcClient.WithClientEnableMetrics(true),
+		grpcClient.WithEndpoint("127.0.0.1:8090"),
+		grpcClient.WithTimeout(5*time.Second),
+		grpcClient.WithInsecure(true),
+		grpcClient.WithEnableMetrics(true),
 	)
 	return c, err
 }

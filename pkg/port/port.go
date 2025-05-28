@@ -1,6 +1,10 @@
 package port
 
-import "net"
+import (
+	"net"
+
+	"github.com/taluos/Malt/pkg/log"
+)
 
 func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
@@ -15,7 +19,8 @@ func GetFreePort() (int, error) {
 	defer func() {
 		err := l.Close()
 		if err != nil {
-			panic(err)
+			log.Errorf("Cannot close tcp listener: ", err)
+			return
 		}
 	}()
 	return l.Addr().(*net.TCPAddr).Port, nil

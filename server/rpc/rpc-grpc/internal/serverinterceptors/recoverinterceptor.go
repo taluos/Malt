@@ -39,6 +39,11 @@ func handleCrash(handler func(any)) {
 }
 
 func toPanicError(ctx context.Context, r any) error {
-	log.Errorf(ctx.Err().Error(), "%+v\n\n%s", r, debug.Stack())
+	if ctx.Err() != nil {
+		log.Errorf("Context error: %s, Panic: %+v\n\n%s", ctx.Err().Error(), r, debug.Stack())
+	} else {
+		log.Errorf("Panic occurred: %+v\n\n%s", r, debug.Stack())
+	}
+	// log.Errorf(ctx.Err().Error(), "%+v\n\n%s", r, debug.Stack())
 	return errors.WithCode(code.ErrUnknow, "panic: %v", r)
 }

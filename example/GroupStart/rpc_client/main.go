@@ -9,12 +9,12 @@ import (
 	"time"
 
 	consulApi "github.com/hashicorp/consul/api"
+	rpcclient "github.com/taluos/Malt/client/rpc"
+	grpcClient "github.com/taluos/Malt/client/rpc/rpc-grpc"
 	consulRegistry "github.com/taluos/Malt/core/registry/consul"
 	"github.com/taluos/Malt/core/selector"
 	"github.com/taluos/Malt/core/selector/picker/random"
 	pb "github.com/taluos/Malt/example/test_proto"
-	rpcclient "github.com/taluos/Malt/server/rpc"
-	grpcClient "github.com/taluos/Malt/server/rpc/rpc-grpc"
 	"google.golang.org/grpc"
 )
 
@@ -42,10 +42,11 @@ func main() {
 
 	// 创建带服务发现的RPC客户端
 	client, err := rpcclient.NewClient("grpc",
-		grpcClient.WithClientEndpoint("discovery:///Malt-grpc"), // 使用服务发现
-		grpcClient.WithClientBalancerName("selector"),
-		grpcClient.WithClientTimeout(5*time.Second),
-		grpcClient.WithClientDiscovery(discovery), // 设置服务发现
+		grpcClient.WithEndpoint("discovery:///Malt-grpc"), // 使用服务发现
+		grpcClient.WithBalancerName("random"),
+		grpcClient.WithBalancerName("selector"),
+		grpcClient.WithTimeout(5*time.Second),
+		grpcClient.WithDiscovery(discovery), // 设置服务发现
 	)
 	if err != nil {
 		log.Fatalf("创建RPC客户端失败: %v", err)

@@ -13,7 +13,6 @@ type (
 		FullMethod string
 		Timeout    time.Duration
 	}
-
 	methodTimeouts map[string]time.Duration
 )
 
@@ -22,19 +21,31 @@ func UnaryTimeoutInterceptor(timeout time.Duration, methodTimeouts ...MethodTime
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		// 获取当前方法的超时时间
 		t := getTimeoutByUnaryServerInfo(method, timeouts, timeout)
-
 		if t <= 0 {
 			return invoker(ctx, method, req, reply, cc, opts...)
 		}
-
 		// 创建一个带有超时的上下文
 		ctx, cancel := context.WithTimeout(ctx, t)
 		defer cancel() // 确保在函数返回时取消上下文
-
 		// 调用 invoker 函数，传递带有超时的上下文
 		return invoker(ctx, method, req, reply, cc, opts...)
 	}
+}
 
+func StreamTimeoutInterceptor(timeout time.Duration, methodTimeouts ...MethodTimeoutConf) grpc.StreamClientInterceptor {
+	timeouts := buildMethodTimeouts(methodTimeouts)
+	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		// 获取当前方法的超时时间
+		t := getTimeoutByUnaryServerInfo(method, timeouts, timeout)
+		if t <= 0 {
+			return streamer(ctx, desc, cc, method, opts...)
+		}
+		// 创建一个带有超时的上下文
+		ctx, cancel := context.WithTimeout(ctx, t)
+		defer cancel() // 确保在函数返回时取消上下文
+		// 调用 streamer 函数，传递带有超时的上下文
+		return streamer(ctx, desc, cc, method, opts...)
+	}
 }
 
 func buildMethodTimeouts(timeouts []MethodTimeoutConf) methodTimeouts {

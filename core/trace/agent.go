@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
-	"github.com/taluos/Malt/pkg/errors"
-
 	"github.com/taluos/Malt/core/trace/exporter"
+	"github.com/taluos/Malt/pkg/errors"
+	"github.com/taluos/Malt/pkg/log"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -53,6 +53,7 @@ func NewAgent(name string, endpoint string, samplerMode string, sampler float64,
 
 	err := agent.startAgent()
 	if err != nil {
+		log.Fatalf("Start trace agent fatal", err)
 		panic(err)
 	}
 

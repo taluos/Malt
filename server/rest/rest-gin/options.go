@@ -1,24 +1,27 @@
 package httpserver
 
 import (
-	"github.com/gin-gonic/gin"
+	"os"
 
 	maltAgent "github.com/taluos/Malt/core/trace"
+	"github.com/taluos/Malt/pkg/errors"
 	auth "github.com/taluos/Malt/server/rest/rest-gin/internal/auth"
+
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type serverOptions struct {
-	name    string // server name
-	address string // server address:  IP_ADDRESS:PORT
+	name    string `validate:"required"` // server name
+	address string `validate:"required"` // server address:  IP_ADDRESS:PORT
+	mode    string `validate:"required"` // gin.ReleaseMode, gin.DebugMode, gin.TestMode
+	trans   string `validate:"required"` // http, https
 
-	mode  string // gin.ReleaseMode, gin.DebugMode, gin.TestMode
-	trans string // http, https
-
-	enableHealth    bool // healthz
-	enableProfiling bool // pprof
-	enableMetrics   bool // metrics
-	enableTracing   bool // tracing
-	enableCert      bool // https cert
+	enableHealth    bool `validate:"required"` // healthz
+	enableProfiling bool `validate:"required"` // pprof
+	enableMetrics   bool `validate:"required"` // metrics
+	enableTracing   bool `validate:"required"` // tracing
+	enableCert      bool `validate:"required"` // https cert
 
 	certFile string // https cert file
 	keyFile  string // https key file
@@ -28,6 +31,29 @@ type serverOptions struct {
 
 	agent        *maltAgent.Agent   // tracing agent
 	authOperator *auth.AuthOperator // auth operator
+}
+
+func (o *serverOptions) Validate() error {
+	validator := validator.New()
+	if err := validator.Struct(o); err != nil {
+		return err
+	}
+
+	// 自定义验证逻辑
+	if o.enableCert {
+		if o.certFile == "" || o.keyFile == "" {
+			return errors.New("cert file and key file are required when HTTPS is enabled")
+		}
+		// 验证文件是否存在
+		if _, err := os.Stat(o.certFile); os.IsNotExist(err) {
+			return errors.Errorf("cert file does not exist: %s", o.certFile)
+		}
+		if _, err := os.Stat(o.keyFile); os.IsNotExist(err) {
+			return errors.Errorf("key file does not exist: %s", o.keyFile)
+		}
+	}
+
+	return nil
 }
 
 // ServerOptions is a function that takes a pointer to a serverOptions struct and modifies it.

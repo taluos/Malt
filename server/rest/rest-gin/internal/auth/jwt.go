@@ -31,9 +31,14 @@ func NewJWTStrategy(jwtInfo JWT.JwtInfo, auth authJWT.Authenticator, keyFunc jwt
 }
 
 // AuthFunc defines jwt bearer strategy as the gin authentication middleware.
-func (j JWTStrategy) AuthFunc() gin.HandlerFunc {
+func (j *JWTStrategy) AuthFunc() gin.HandlerFunc {
 	if j.authenticator == nil {
 		log.Errorf("jwt authenticator is nil")
+		return func(c *gin.Context) {
+			log.Errorf("jwt authenticator is nil")
+			internal.WriteResponse(c, errors.WithCode(code.ErrSignatureInvalid, "Authentication service unavailable"), nil)
+			c.Abort()
+		}
 	}
 	return func(c *gin.Context) {
 		// 获取请求路径

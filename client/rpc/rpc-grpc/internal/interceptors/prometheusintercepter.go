@@ -35,26 +35,37 @@ var (
 )
 
 func UnaryPrometheusInterceptor(histogramVecOpts *metric.HistogramVecOpts, counterVecOpts *metric.CounterVecOpts) grpc.UnaryClientInterceptor {
-
 	if histogramVecOpts != nil {
 		metricServerReqDur = metric.NewHistogramVec(histogramVecOpts)
 	}
-
 	if counterVecOpts != nil {
 		metricServerReqCodeTotal = metric.NewCounterVec(counterVecOpts)
 	}
-
 	return func(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 		now := time.Now()
-
 		err := invoker(ctx, method, req, reply, cc, opts...)
-
 		// 记录耗时
 		metricServerReqDur.Observe(int64(time.Since(now)/time.Millisecond), method)
-
 		// 记录状态码
 		metricServerReqCodeTotal.Inc(method, status.Code(err).String())
-
 		return err
+	}
+}
+
+func StreamPrometheusInterceptor(histogramVecOpts *metric.HistogramVecOpts, counterVecOpts *metric.CounterVecOpts) grpc.StreamClientInterceptor {
+	if histogramVecOpts != nil {
+		metricServerReqDur = metric.NewHistogramVec(histogramVecOpts)
+	}
+	if counterVecOpts != nil {
+		metricServerReqCodeTotal = metric.NewCounterVec(counterVecOpts)
+	}
+	return func(ctx context.Context, desc *grpc.StreamDesc, cc *grpc.ClientConn, method string, streamer grpc.Streamer, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+		now := time.Now()
+		clientStream, err := streamer(ctx, desc, cc, method, opts...)
+		// 记录耗时
+		metricServerReqDur.Observe(int64(time.Since(now)/time.Millisecond), method)
+		// 记录状态码
+		metricServerReqCodeTotal.Inc(method, status.Code(err).String())
+		return clientStream, err
 	}
 }

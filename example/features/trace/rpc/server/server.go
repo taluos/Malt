@@ -51,10 +51,10 @@ func main() {
 	defer globalAgent.Shutdown(context.Background())
 
 	rpcServer := rpcserver.NewServer("grpc",
-		grpcServer.WithServerAddress("127.0.0.1:50051"),
-		grpcServer.WithServerTimeout(5*time.Second),
-		grpcServer.WithServerEnableTracing(true),
-		grpcServer.WithServerAgent(globalAgent),
+		grpcServer.WithAddress("127.0.0.1:50051"),
+		grpcServer.WithTimeout(5*time.Second),
+		grpcServer.WithEnableTracing(true),
+		grpcServer.WithAgent(globalAgent),
 	)
 
 	rpcServer = rpcServer.RegisterService(pb.RegisterGreeterServer, &service.GreeterServer{})

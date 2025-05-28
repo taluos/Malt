@@ -3,11 +3,11 @@ package grpc
 import (
 	"context"
 
+	interceptors "github.com/taluos/Malt/client/rpc/rpc-grpc/internal/interceptors"
 	"github.com/taluos/Malt/core/resolver/direct"
 	"github.com/taluos/Malt/core/resolver/discovery"
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/log"
-	"github.com/taluos/Malt/server/rpc/rpc-grpc/internal/clientinterceptors"
 
 	"google.golang.org/grpc"
 	grpcinsecure "google.golang.org/grpc/credentials/insecure"
@@ -24,15 +24,20 @@ type Client struct {
 }
 
 func NewClient(opts ...ClientOptions) (*Client, error) {
+	var (
+		err     error
+		CliConn *grpc.ClientConn
+	)
 
 	o := clientOptions{
-		endpoint: "127.0.0.1:0",
+		name:    defaultClientName,
+		address: defaultAddress,
 
 		insecure:      true,
 		enableTracing: false,
 		enableMetrics: false,
 
-		timeout:      dialTimeout,
+		timeout:      defaultTimeout,
 		balancerName: defautBalancer,
 	}
 
@@ -40,7 +45,12 @@ func NewClient(opts ...ClientOptions) (*Client, error) {
 		opt(&o)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), dialTimeout)
+	if err = o.Validate(); err != nil {
+		log.Errorf("[gRPC] client options validate error: %v", err)
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 
 	cli := &Client{
 		rootCtx:    ctx,
@@ -48,7 +58,7 @@ func NewClient(opts ...ClientOptions) (*Client, error) {
 		opts:       o,
 	}
 
-	CliConn, err := dial(o.insecure, o)
+	CliConn, err = dial(o.insecure, o)
 	if err != nil {
 		cancel()
 		return nil, err
@@ -56,10 +66,6 @@ func NewClient(opts ...ClientOptions) (*Client, error) {
 	cli.ClientConn = CliConn
 
 	return cli, nil
-}
-
-func (c *Client) Endpoint() string {
-	return c.opts.endpoint
 }
 
 func (c *Client) Close(ctx context.Context) error {
@@ -74,7 +80,7 @@ func (c *Client) Close(ctx context.Context) error {
 
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, dialTimeout)
+		ctx, cancel = context.WithTimeout(ctx, defaultTimeout)
 		defer cancel()
 	}
 
@@ -99,7 +105,7 @@ func (c *Client) Close(ctx context.Context) error {
 func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 
 	uraryInts := []grpc.UnaryClientInterceptor{
-		clientinterceptors.UnaryTimeoutInterceptor(opts.timeout), // 添加超时拦截器
+		interceptors.UnaryTimeoutInterceptor(opts.timeout), // 添加超时拦截器
 	}
 	if len(opts.unaryInterceptors) > 0 {
 		uraryInts = append(uraryInts, opts.unaryInterceptors...) // 追加用户传入的拦截器
@@ -107,13 +113,13 @@ func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 
 	if opts.enableMetrics {
 		uraryInts = append(uraryInts,
-			clientinterceptors.UnaryPrometheusInterceptor(opts.histogramVecOpts, opts.counterVecOpts))
+			interceptors.UnaryPrometheusInterceptor(opts.histogramVecOpts, opts.counterVecOpts))
 	}
 
 	if opts.enableTracing {
 		//grpcOpts = append(grpcOpts, grpc.WithStatsHandler(otelgrpc.NewClientHandler()))
 		uraryInts = append(uraryInts,
-			clientinterceptors.UnaryTracingInterceptor(opts.agent))
+			interceptors.UnaryTracingInterceptor(opts.agent))
 	}
 
 	steamInts := []grpc.StreamClientInterceptor{}
@@ -149,11 +155,23 @@ func dial(insecure bool, opts clientOptions) (*grpc.ClientConn, error) {
 		grpcOpts = append(grpcOpts, grpc.WithTransportCredentials(grpcinsecure.NewCredentials()))
 	}
 
-	CliConn, err := grpc.NewClient(opts.endpoint, grpcOpts...)
+	CliConn, err := grpc.NewClient(opts.address, grpcOpts...)
 	if err != nil {
 		log.Errorf("[gRPC] dial error: %v", err)
 		return nil, err
 	}
 
 	return CliConn, err
+}
+
+func (c *Client) Name() string {
+	return c.opts.name
+}
+
+func (c *Client) Endpoint() string {
+	return c.opts.address
+}
+
+func (c *Client) Balancer() string {
+	return c.opts.balancerName
 }

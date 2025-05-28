@@ -6,10 +6,10 @@ import (
 	"log"
 	"time"
 
+	rpcclient "github.com/taluos/Malt/client/rpc"
+	grpcClient "github.com/taluos/Malt/client/rpc/rpc-grpc"
 	maltAgent "github.com/taluos/Malt/core/trace"
 	pb "github.com/taluos/Malt/example/test_proto"
-	rpcclient "github.com/taluos/Malt/server/rpc"
-	grpcClient "github.com/taluos/Malt/server/rpc/rpc-grpc"
 	"google.golang.org/grpc"
 
 	"go.opentelemetry.io/otel/attribute"
@@ -42,11 +42,11 @@ func Run(ctx context.Context) error {
 	time.Sleep(time.Second * 1)
 	// 创建 gRPC 客户端，可根据需要自定义连接地址、超时时间等
 	c, err := rpcclient.NewClient("grpc",
-		grpcClient.WithClientEndpoint("127.0.0.1:50051"),
-		grpcClient.WithClientTimeout(5*time.Second),
-		grpcClient.WithClientInsecure(true),
-		grpcClient.WithClientEnableTracing(true),
-		grpcClient.WithClientAgent(globalAgent),
+		grpcClient.WithEndpoint("127.0.0.1:50051"),
+		grpcClient.WithTimeout(5*time.Second),
+		grpcClient.WithInsecure(true),
+		grpcClient.WithEnableTracing(true),
+		grpcClient.WithAgent(globalAgent),
 	)
 
 	if err != nil {

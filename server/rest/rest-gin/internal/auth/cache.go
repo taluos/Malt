@@ -40,7 +40,7 @@ func NewCacheStrategy(get func(kid string) (Secret, error)) CacheStrategy {
 }
 
 // AuthFunc defines cache strategy as the gin authentication middleware.
-func (cache CacheStrategy) AuthFunc() gin.HandlerFunc {
+func (cache *CacheStrategy) AuthFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var err error
 		var rawJWT string

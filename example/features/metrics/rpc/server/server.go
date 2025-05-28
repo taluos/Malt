@@ -17,9 +17,9 @@ import (
 func rpcServerInit() rpcserver.Server {
 	// 创建 gRPC Server，可根据需要自定义监听地址、超时时间等
 	s := rpcserver.NewServer("grpc",
-		grpcServer.WithServerAddress("127.0.0.1:8090"),
-		grpcServer.WithServerTimeout(5*time.Second),
-		grpcServer.WithServerEnableMetrics(true),
+		grpcServer.WithAddress("127.0.0.1:8090"),
+		grpcServer.WithTimeout(5*time.Second),
+		grpcServer.WithEnableMetrics(true),
 	)
 
 	// 注册服务

@@ -11,14 +11,14 @@ import (
 )
 
 func TestNewServer(t *testing.T) {
-	s := NewServer(WithServerAddress(defaultAddress))
+	s := NewServer(WithAddress(defaultAddress))
 	assert.NotNil(t, s, "Expected non-nil server")
 }
 
 func TestServerCreation(t *testing.T) {
 	var err error
 	s := NewServer(
-		WithServerAddress(defaultAddress),
+		WithAddress(defaultAddress),
 		// rpcserver.WithListener(listener),
 	)
 

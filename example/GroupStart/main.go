@@ -37,8 +37,8 @@ func main() {
 	port2, _ := getport.GetFreePort()
 	address2 := fmt.Sprintf("%s:%d", "10.60.82.146", port2)
 	rpcServerInstance := rpcserver.NewServer("grpc",
-		grpcServer.WithServerAddress(address2),
-		grpcServer.WithServerTimeout(5*time.Second),
+		grpcServer.WithAddress(address2),
+		grpcServer.WithTimeout(5*time.Second),
 	)
 	rpcServerInstance.RegisterService(pb.RegisterGreeterServer, service.NewGreeterServer())
 

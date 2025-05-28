@@ -16,19 +16,14 @@ func UnaryTracingInterceptor(agent *maltAgent.Agent) grpc.UnaryServerInterceptor
 		tr := maltAgent.NewTracer(trace.SpanKindServer,
 			maltAgent.WithTracerProvider(agent.TracerProvider()),
 			maltAgent.WithTracerName(info.FullMethod))
-
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
 			md = metadata.New(nil)
 		}
 		carrier := propagation.HeaderCarrier(md)
-
 		spanCtx, span := tr.Start(ctx, info.FullMethod, agent.Propagator(), carrier)
-
 		resp, err := handler(spanCtx, req)
-
 		defer tr.End(spanCtx, span, err)
-
 		return resp, err
 	}
 }

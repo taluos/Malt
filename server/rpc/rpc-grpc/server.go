@@ -30,6 +30,7 @@ type Server struct {
 func NewServer(opts ...ServerOptions) *Server {
 
 	o := &serverOptions{
+		name:        defaultServerName,
 		address:     defaultAddress,
 		healthCheck: health.NewServer(),
 		timeout:     defaultTimeout,
@@ -42,6 +43,11 @@ func NewServer(opts ...ServerOptions) *Server {
 
 	for _, opt := range opts {
 		opt(o)
+	}
+
+	if err := o.Validate(); err != nil {
+		log.Fatalf("[gRPC] server options validate failed: %s", err)
+		return nil
 	}
 
 	uraryInts := []grpc.UnaryServerInterceptor{
@@ -195,12 +201,15 @@ func (s *Server) listenAndEndpoint() error {
 		return err
 	}
 
-	//s.opt.endpoint = &url.URL{
-	//	Scheme: "grpc",
-	//	Host:   address,
-	//}
-
 	s.opt.endpoint = discovery.NewEndpoint("grpc", address, s.opt.enableInsecure)
 
 	return nil
+}
+
+func (s *Server) Name() string {
+	return s.opt.name
+}
+
+func (s *Server) Address() string {
+	return s.opt.address
 }

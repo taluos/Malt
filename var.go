@@ -3,7 +3,7 @@ package Malt
 import "time"
 
 const (
-	Release = "v 0.1.6"
+	Release = "v 0.1.7"
 
 	defaultName           = "Malt"
 	defaltTimeout         = 10 * time.Second

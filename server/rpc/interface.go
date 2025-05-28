@@ -24,24 +24,8 @@ type Server interface {
 	RegisterService(desc interface{}, impl interface{}) Server
 }
 
-// Client 定义了RPC客户端的基本接口
-type Client interface {
-	// Endpoint 返回客户端连接的端点
-	Endpoint() string
-
-	// Close 关闭客户端连接
-	Close(ctx context.Context) error
-
-	// Conn 返回底层的RPC连接，允许直接访问底层实现
-	// 注意：这可能会导致与底层实现的耦合，应谨慎使用
-	Conn() any
-}
-
 // ServerOptions 定义了创建服务器的选项
 type ServerOptions interface{}
-
-// ClientOptions 定义了创建客户端的选项
-type ClientOptions interface{}
 
 // NewServer 创建一个新的RPC服务器实例
 func NewServer(method string, opts ...ServerOptions) Server {
@@ -51,14 +35,4 @@ func NewServer(method string, opts ...ServerOptions) Server {
 	}
 
 	return nil
-}
-
-// NewClient 创建一个新的RPC客户端实例
-func NewClient(method string, opts ...ClientOptions) (Client, error) {
-	// 这里可以根据配置选择不同的实现
-	if method == "grpc" {
-		return newGrpcClient(opts...)
-	}
-
-	return nil, nil
 }

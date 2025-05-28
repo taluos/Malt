@@ -64,8 +64,8 @@ func TestNewClient(t *testing.T) {
 		}
 
 		client, err := NewClient(
-			WithClientEndpoint("bufnet"),
-			WithClientOptions(
+			WithEndpoint("bufnet"),
+			WithOptions(
 				grpc.WithContextDialer(dialer),
 				grpc.WithTransportCredentials(creds),
 			),
@@ -95,11 +95,11 @@ func TestNewClient(t *testing.T) {
 			t.Fatalf("生成测试证书失败: %v", err)
 		}
 		client, err := NewClient(
-			WithClientEndpoint("bufnet"),
-			WithClientTimeout(time.Second*10),
-			WithClientInsecure(true),
-			WithClientBalancerName("round_robin"),
-			WithClientOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
+			WithEndpoint("bufnet"),
+			WithTimeout(time.Second*10),
+			WithInsecure(true),
+			WithBalancerName("round_robin"),
+			WithOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
 		)
 
 		if err != nil {
@@ -131,8 +131,8 @@ func TestGetClientEndpoint(t *testing.T) {
 
 	endpoint := "test-endpoint"
 	client, err := NewClient(
-		WithClientEndpoint(endpoint),
-		WithClientOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
+		WithEndpoint(endpoint),
+		WithOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
 	)
 
 	if err != nil {
@@ -161,8 +161,8 @@ func TestClientClose(t *testing.T) {
 			t.Fatalf("生成测试证书失败: %v", err)
 		}
 		client, err := NewClient(
-			WithClientEndpoint("bufnet"),
-			WithClientOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
+			WithEndpoint("bufnet"),
+			WithOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
 		)
 
 		if err != nil {
@@ -185,8 +185,8 @@ func TestClientClose(t *testing.T) {
 			t.Fatalf("生成测试证书失败: %v", err)
 		}
 		client, err := NewClient(
-			WithClientEndpoint("bufnet"),
-			WithClientOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
+			WithEndpoint("bufnet"),
+			WithOptions(grpc.WithContextDialer(dialer), grpc.WithTransportCredentials(creds)),
 		)
 
 		if err != nil {
@@ -229,7 +229,7 @@ func TestDial(t *testing.T) {
 	t.Run("不安全连接", func(t *testing.T) {
 
 		opts := clientOptions{
-			endpoint: "bufnet",
+			address:  "bufnet",
 			insecure: true,
 			timeout:  time.Second,
 			grpcOpts: []grpc.DialOption{grpc.WithContextDialer(dialer)},
@@ -250,7 +250,7 @@ func TestDial(t *testing.T) {
 	// 测试不安全连接
 	t.Run("不安全连接", func(t *testing.T) {
 		opts := clientOptions{
-			endpoint: "bufnet",
+			address:  "bufnet",
 			insecure: true,
 			timeout:  time.Second,
 			grpcOpts: []grpc.DialOption{grpc.WithContextDialer(dialer)},

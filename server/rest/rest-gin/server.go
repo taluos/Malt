@@ -102,7 +102,6 @@ func NewServer(opts ...ServerOptions) *Server {
 	s.trans, err = initTrans(s.opts.trans)
 	if err != nil {
 		log.Errorf("init translator failed: %s", err.Error())
-		// 这里可以考虑返回错误而不是继续
 	}
 
 	// 注册验证器
@@ -162,4 +161,20 @@ func (s *Server) Stop(ctx context.Context) error {
 	log.Infof("[HTTP] server is stopped on %v", s.opts.address)
 
 	return err
+}
+
+func (s *Server) Name() string {
+	return s.opts.name
+}
+
+func (s *Server) Address() string {
+	return s.opts.address
+}
+
+func (s *Server) Mode() string {
+	return s.opts.mode
+}
+
+func (s *Server) Trans() uTranslator.Translator {
+	return s.trans
 }

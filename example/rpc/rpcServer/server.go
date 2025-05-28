@@ -20,8 +20,8 @@ import (
 func Run(ctx context.Context) error {
 	// 创建 gRPC Server，可根据需要自定义监听地址、超时时间等
 	s := rpcserver.NewServer("grpc",
-		grpcServer.WithServerAddress("127.0.0.1:50051"),
-		grpcServer.WithServerTimeout(5*time.Second),
+		grpcServer.WithAddress("127.0.0.1:50051"),
+		grpcServer.WithTimeout(5*time.Second),
 	)
 
 	s.RegisterService(pb.RegisterGreeterServer, service.NewGreeterServer())
