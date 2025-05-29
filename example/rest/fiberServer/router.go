@@ -1,4 +1,4 @@
-package restserver
+package fiberserver
 
 import (
 	restserver "github.com/taluos/Malt/server/rest"
@@ -12,7 +12,6 @@ func InitRouter(srv restserver.Server) {
 		{
 			userController := NewUserServer()
 			userGroup.Handle("GET", "/info", userController.GetUserInfo)
-			// userGroup.GET("/info", userController.GetUserInfo)
 		}
 	}
 }

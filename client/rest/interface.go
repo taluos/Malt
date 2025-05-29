@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/taluos/Malt/pkg/errors"
 )
@@ -22,7 +21,7 @@ type Client interface {
 	// Patch 执行PATCH请求
 	Patch(ctx context.Context, path string, body interface{}, opts ...RequestOption) (Response, error)
 	// Close 关闭客户端
-	Close() error
+	Close(ctx context.Context) error
 }
 
 // Response 定义了HTTP响应的通用接口
@@ -41,32 +40,8 @@ type Response interface {
 	Reader() io.Reader
 }
 
-// RequestOption 定义了请求选项的函数类型
-type RequestOption func(*RequestOptions)
-
-// RequestOptions 定义了请求选项结构
-type RequestOptions struct {
-	Headers     map[string]string
-	QueryParams map[string]string
-	Timeout     *time.Duration
-}
-
-// ClientOption 定义了客户端选项的函数类型
-type ClientOption func(*ClientOptions)
-
-// ClientOptions 定义了客户端选项结构
-type ClientOptions struct {
-	Timeout    time.Duration
-	RetryCount int
-	UserAgent  string
-	Headers    map[string]string
-	BaseURL    string
-}
-
-const (
-	HTTPClient     string = "http"
-	FastHTTPClient string = "fasthttp"
-)
+type RequestOption any
+type ClientOption any
 
 // NewClient 创建新的HTTP客户端
 func NewClient(clientType string, baseURL string, opts ...ClientOption) (Client, error) {
@@ -76,6 +51,6 @@ func NewClient(clientType string, baseURL string, opts ...ClientOption) (Client,
 	case FastHTTPClient:
 		return newFastHTTPClient(baseURL, opts...)
 	default:
-		return nil, errors.New(fmt.Sprintf("unsupported client type: %s", clientType))
+		return nil, errors.New(fmt.Sprintf("[REST] unsupported client type: %s", clientType))
 	}
 }

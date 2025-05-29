@@ -3,6 +3,8 @@ package rpc
 import (
 	"context"
 	"net/url"
+
+	"github.com/taluos/Malt/pkg/log"
 )
 
 // Server 定义了RPC服务器的基本接口
@@ -21,7 +23,7 @@ type Server interface {
 	Engine() any
 
 	// RegisterService 注册一个服务到RPC服务器
-	RegisterService(desc interface{}, impl interface{}) Server
+	RegisterService(desc any, impl any) Server
 }
 
 // ServerOptions 定义了创建服务器的选项
@@ -30,9 +32,11 @@ type ServerOptions interface{}
 // NewServer 创建一个新的RPC服务器实例
 func NewServer(method string, opts ...ServerOptions) Server {
 	// 这里可以根据配置选择不同的实现
-	if method == "grpc" {
+	switch method {
+	case grpcServerType:
 		return newGrpcServer(opts...)
+	default:
+		log.Errorf("[RPC-Server] unknown rpc server type: %s", method)
+		return nil
 	}
-
-	return nil
 }

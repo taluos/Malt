@@ -12,12 +12,13 @@ import (
 	grpcClient "github.com/taluos/Malt/client/rpc/rpc-grpc"
 
 	pb "github.com/taluos/Malt/example/test_proto"
+	"google.golang.org/grpc"
 )
 
 // Run 启动 gRPC 客户端并优雅关闭
 func Run(ctx context.Context) error {
 	// 创建 gRPC 客户端，可根据需要自定义连接地址、超时时间等
-	c, err := rpcclient.NewClient("grpc",
+	client, err := rpcclient.NewClient("grpc",
 		grpcClient.WithEndpoint("127.0.0.1:50051"),
 		grpcClient.WithTimeout(5*time.Second),
 		grpcClient.WithInsecure(true),
@@ -25,11 +26,13 @@ func Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	// 创建 Greeter 客户端
-	client := pb.NewGreeterClient(c.Conn().(*grpcClient.Client).ClientConn)
+	conn := client.Conn().(*grpc.ClientConn)
+	greeterClient := pb.NewGreeterClient(conn)
 
 	// 调用 SayHello 方法
-	resp, err := client.SayHello(ctx, &pb.HelloRequest{Name: "Malt用户"})
+	resp, err := greeterClient.SayHello(ctx, &pb.HelloRequest{Name: "Malt用户"})
 	if err != nil {
 		log.Printf("调用 SayHello 失败: %v", err)
 	} else {
@@ -46,9 +49,10 @@ func Run(ctx context.Context) error {
 	closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	stopped := make(chan struct{})
+	stopped := make(chan os.Signal, 1)
+	signal.Notify(stopped, os.Interrupt, syscall.SIGTERM)
 	go func() {
-		if err := c.Close(closeCtx); err != nil {
+		if err = client.Close(closeCtx); err != nil {
 			log.Printf("关闭 gRPC 客户端出错: %v", err)
 		}
 		close(stopped)
@@ -61,5 +65,5 @@ func Run(ctx context.Context) error {
 		log.Println("gRPC 客户端关闭超时，强制关闭")
 	}
 
-	return nil
+	return err
 }

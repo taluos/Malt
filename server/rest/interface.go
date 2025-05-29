@@ -2,6 +2,8 @@ package rest
 
 import (
 	"context"
+
+	"github.com/taluos/Malt/pkg/log"
 )
 
 // Server 定义了REST服务器的基本接口
@@ -60,9 +62,13 @@ type ServerOptions any
 
 // NewServer 创建一个新的REST服务器实例
 func NewServer(method string, opts ...ServerOptions) Server {
-	factory, exists := ServerFactories[method]
-	if !exists {
+	switch method {
+	case ginServerType:
+		return newGinServer(opts...)
+	case fiberServerType:
+		return newFiberServer(opts...)
+	default:
+		log.Errorf("[Rest-Server] unknown server type: %s", method)
 		return nil
 	}
-	return factory(opts...)
 }

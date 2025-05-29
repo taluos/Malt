@@ -104,6 +104,25 @@ func (app *App) Run() error {
 	eg, ctx := errgroup.WithContext(sctx)
 	wg := sync.WaitGroup{}
 
+	for _, srv := range app.opts.server {
+		server := srv
+		eg.Go(func() error {
+			<-ctx.Done()
+			stopCtx := sctx
+			if app.opts.stopTimeout > 0 {
+				var cancel context.CancelFunc
+				stopCtx, cancel = context.WithTimeout(stopCtx, app.opts.stopTimeout)
+				defer cancel()
+			}
+			return server.Stop(stopCtx)
+		})
+		wg.Add(1)
+		eg.Go(func() error {
+			defer wg.Done()
+			return server.Start(sctx)
+		})
+	}
+
 	// start Rest Server
 	for _, srv := range app.opts.restserver {
 		server := srv
@@ -119,7 +138,7 @@ func (app *App) Run() error {
 		})
 		wg.Add(1)
 		eg.Go(func() error {
-			wg.Done()
+			defer wg.Done()
 			return server.Start(sctx)
 		})
 	}
@@ -139,7 +158,7 @@ func (app *App) Run() error {
 		})
 		wg.Add(1)
 		eg.Go(func() error {
-			wg.Done()
+			defer wg.Done()
 			return server.Start(sctx)
 		})
 	}

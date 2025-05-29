@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	rpcserver "github.com/taluos/Malt/example/rpc/rpcServer"
@@ -32,5 +35,12 @@ func main() {
 	}()
 
 	// 阻塞主线程，等待客户端和服务器完成
-	select {}
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+	select {
+	case <-stop:
+		log.Println("应用已正常关闭")
+	case <-time.After(5 * time.Second):
+		log.Println("应用关闭超时，强制关闭")
+	}
 }

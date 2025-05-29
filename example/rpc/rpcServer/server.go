@@ -43,7 +43,7 @@ func Run(ctx context.Context) error {
 	<-quit
 	log.Println("Shutting down gRPC server...")
 
-	stopped := make(chan struct{})
+	stopped := make(chan struct{}, 1)
 	go func() {
 		s.Stop(ctx)
 		close(stopped)

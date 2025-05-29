@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/taluos/Malt/client/rest/rest-http/internal/interceptors"
+	"github.com/taluos/Malt/pkg/log"
 )
 
 type Client struct {
@@ -143,6 +144,27 @@ func (c *Client) executeWithInterceptors(ctx context.Context, req *http.Request)
 	return response, err
 }
 
-func (c *Client) Close() error {
-	return c.Close()
+func (c *Client) Close(ctx context.Context) error {
+
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, defaultTimeout)
+		defer cancel()
+	}
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		log.Infof("[Rest] client closing")
+		c.Client.CloseIdleConnections()
+	}()
+
+	select {
+	case <-done:
+	case <-ctx.Done():
+		log.Errorf("[Rest] server couldn't close gracefully in time")
+		return ctx.Err()
+	}
+	log.Infof("[Rest] client closed")
+	return nil
 }

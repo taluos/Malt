@@ -21,10 +21,6 @@ type Client interface {
 // ClientOptions 定义了创建客户端的选项
 type ClientOptions interface{}
 
-const (
-	GRPCClientType = "grpc"
-)
-
 // NewClient 创建一个新的RPC客户端实例
 func NewClient(method string, opts ...ClientOptions) (Client, error) {
 	// 这里可以根据配置选择不同的实现
@@ -32,6 +28,6 @@ func NewClient(method string, opts ...ClientOptions) (Client, error) {
 	case GRPCClientType:
 		return newGrpcClient(opts...)
 	default:
-		return nil, errors.New(fmt.Sprintf("unsupported client type: %s", method))
+		return nil, errors.New(fmt.Sprintf("[RPC] unsupported client type: %s", method))
 	}
 }

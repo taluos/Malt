@@ -5,11 +5,11 @@ import (
 	"os"
 	"time"
 
+	"github.com/taluos/Malt/core/registry"
 	"github.com/taluos/Malt/pkg/log"
+	malitServer "github.com/taluos/Malt/server"
 	restserver "github.com/taluos/Malt/server/rest"
 	rpcserver "github.com/taluos/Malt/server/rpc"
-
-	"github.com/taluos/Malt/core/registry"
 )
 
 type options struct {
@@ -27,11 +27,12 @@ type options struct {
 	registrarTimeout time.Duration
 	stopTimeout      time.Duration
 
+	server []malitServer.Server
+
 	restserver []restserver.Server
 	rpcserver  []rpcserver.Server
 }
 
-// 函数选项模式
 type Option func(*options)
 
 func WithEndpoints(endpoints []*url.URL) Option {
@@ -95,6 +96,12 @@ func WithLogger(logger log.Logger) Option {
 func WithMetadata(metadata map[string]string) Option {
 	return func(o *options) {
 		o.metadata = metadata
+	}
+}
+
+func WithServer(server ...malitServer.Server) Option {
+	return func(o *options) {
+		o.server = server
 	}
 }
 
