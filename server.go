@@ -4,12 +4,7 @@ import (
 	"context"
 
 	maltServer "github.com/taluos/Malt/server"
-	restServer "github.com/taluos/Malt/server/rest"
-	rpcServer "github.com/taluos/Malt/server/rpc"
 )
-
-var _ maltServer.Server = (rpcServer.Server)(nil)
-var _ maltServer.Server = (restServer.Server)(nil)
 
 var _ Server = (maltServer.Server)(nil)
 

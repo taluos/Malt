@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/gin-gonic/gin"
-	httpserver "github.com/taluos/Malt/server/rest/rest-gin"
+	ginServer "github.com/taluos/Malt/server/rest/rest-gin"
 )
 
-// ginServer 是基于Gin的Server实现
-type ginServer struct {
-	server *httpserver.Server
+// ginServerWrapper 是基于Gin的Server实现
+type ginServerWrapper struct {
+	server *ginServer.Server
 }
 
 // ginRouteGroup 是基于Gin的RouteGroup实现
@@ -17,10 +17,7 @@ type ginRouteGroup struct {
 	group *gin.RouterGroup
 }
 
-// 确保ginServer实现了Server接口
-var _ Server = (*ginServer)(nil)
-
-// 确保ginRouteGroup实现了RouteGroup接口
+var _ Server = (*ginServerWrapper)(nil)
 var _ RouteGroup = (*ginRouteGroup)(nil)
 
 // newGinServer 创建一个新的基于Gin的服务器
@@ -29,44 +26,49 @@ func newGinServer(opts ...ServerOptions) Server {
 	serverOpts := convertGinOptions(opts...)
 
 	// 创建服务器
-	server := httpserver.NewServer(serverOpts...)
+	server := ginServer.NewServer(serverOpts...)
 
-	return &ginServer{
+	return &ginServerWrapper{
 		server: server,
 	}
 }
 
+// Type 实现Server.Type
+func (s *ginServerWrapper) Type() string {
+	return "gin"
+}
+
 // Start 实现Server.Start
-func (s *ginServer) Start(ctx context.Context) error {
+func (s *ginServerWrapper) Start(ctx context.Context) error {
 	return s.server.Start(ctx)
 }
 
 // Stop 实现Server.Stop
-func (s *ginServer) Stop(ctx context.Context) error {
+func (s *ginServerWrapper) Stop(ctx context.Context) error {
 	return s.server.Stop(ctx)
 }
 
 // Engine 实现Server.Engine
-func (s *ginServer) Engine() any {
+func (s *ginServerWrapper) Engine() any {
 	return s.server.Engine
 }
 
 // Group 实现Server.Group
-func (s *ginServer) Group(relativePath string, handlers ...any) RouteGroup {
+func (s *ginServerWrapper) Group(relativePath string, handlers ...any) RouteGroup {
 	ginHandlers := convertToGinHandlers(handlers...)
 	group := s.server.Group(relativePath, ginHandlers...)
 	return &ginRouteGroup{group: group}
 }
 
 // Use 实现Server.Use
-func (s *ginServer) Use(middleware ...any) Server {
+func (s *ginServerWrapper) Use(middleware ...any) Server {
 	ginMiddleware := convertToGinHandlers(middleware...)
 	s.server.Use(ginMiddleware...)
 	return s
 }
 
 // Handle 实现Server.Handle
-func (s *ginServer) Handle(httpMethod, relativePath string, handlers ...any) Server {
+func (s *ginServerWrapper) Handle(httpMethod, relativePath string, handlers ...any) Server {
 	ginHandlers := convertToGinHandlers(handlers...)
 	s.server.Handle(httpMethod, relativePath, ginHandlers...)
 	return s
@@ -161,10 +163,10 @@ func convertToGinHandlers(handlers ...any) []gin.HandlerFunc {
 }
 
 // 辅助函数：转换通用选项为Gin选项
-func convertGinOptions(opts ...ServerOptions) []httpserver.ServerOptions {
-	serverOpts := make([]httpserver.ServerOptions, 0, len(opts))
+func convertGinOptions(opts ...ServerOptions) []ginServer.ServerOptions {
+	serverOpts := make([]ginServer.ServerOptions, 0, len(opts))
 	for _, opt := range opts {
-		if so, ok := opt.(httpserver.ServerOptions); ok {
+		if so, ok := opt.(ginServer.ServerOptions); ok {
 			serverOpts = append(serverOpts, so)
 		}
 	}

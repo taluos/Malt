@@ -8,6 +8,9 @@ import (
 
 // Server 定义了REST服务器的基本接口
 type Server interface {
+	// Name 返回服务器的名称
+	Type() string
+
 	// Start 启动服务器
 	Start(ctx context.Context) error
 

@@ -29,13 +29,14 @@ func main() {
 		consulRegistry.WithHeartbeat(true),
 		consulRegistry.WithHealthCheckInterval(10),
 	)
+
 	var App = malt.New(
 		malt.WithId(uuid.New().String()),
 		malt.WithName("Malt"),
 		malt.WithRegistrarTimeout(5*time.Second),
 		malt.WithStopTimeout(5*time.Second),
 
-		malt.WithRESTServer(Server),
+		malt.WithServer(Server),
 		malt.WithRegistrar(RegistyInstance),
 	)
 

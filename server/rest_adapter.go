@@ -13,10 +13,10 @@ type restServerWrapper struct {
 	serverType string
 }
 
-var _ Server = (*restServerWrapper)(nil)
+var _ RESTServer = (*restServerWrapper)(nil)
 
 // NewRESTServer 创建REST服务器
-func newRestServer(serverType string, opts ...rest.ServerOptions) (Server, error) {
+func newRestServer(serverType string, opts ...rest.ServerOptions) (*restServerWrapper, error) {
 	server := rest.NewServer(serverType, opts...)
 	if server == nil {
 		return nil, errors.New(fmt.Sprintf("[Server] failed to create REST server with type: %s", serverType))

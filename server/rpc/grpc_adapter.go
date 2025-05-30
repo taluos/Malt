@@ -6,54 +6,56 @@ import (
 	"net/url"
 	"reflect"
 
-	gRpc "github.com/taluos/Malt/server/rpc/rpc-grpc"
+	grpcServer "github.com/taluos/Malt/server/rpc/rpc-grpc"
 
 	"google.golang.org/grpc"
 )
 
-// grpcServer 是基于gRPC的Server实现
-type grpcServer struct {
-	server *gRpc.Server
+// grpcServerWrapper 是基于gRPC的Server实现
+type grpcServerWrapper struct {
+	server *grpcServer.Server
 }
 
 // 确保grpcServer实现了Server接口
-var _ Server = (*grpcServer)(nil)
+var _ Server = (*grpcServerWrapper)(nil)
 
 // newGrpcServer 创建一个新的基于gRPC的服务器
-func newGrpcServer(opts ...ServerOptions) Server {
+func newGrpcServer(opts ...ServerOptions) *grpcServerWrapper {
 	// 转换选项
 	serverOpts := convertOptions(opts...)
-
 	// 创建服务器
-	server := gRpc.NewServer(serverOpts...)
-
-	return &grpcServer{
+	server := grpcServer.NewServer(serverOpts...)
+	return &grpcServerWrapper{
 		server: server,
 	}
 }
 
+func (s *grpcServerWrapper) Type() string {
+	return "grpc"
+}
+
 // Start 实现Server.Start
-func (s *grpcServer) Start(ctx context.Context) error {
+func (s *grpcServerWrapper) Start(ctx context.Context) error {
 	return s.server.Start(ctx)
 }
 
 // Stop 实现Server.Stop
-func (s *grpcServer) Stop(ctx context.Context) error {
+func (s *grpcServerWrapper) Stop(ctx context.Context) error {
 	return s.server.Stop(ctx)
 }
 
 // Endpoint 实现Server.Endpoint
-func (s *grpcServer) Endpoint() (*url.URL, error) {
+func (s *grpcServerWrapper) Endpoint() (*url.URL, error) {
 	return s.server.Endpoint()
 }
 
 // Engine 实现Server.Engine
-func (s *grpcServer) Engine() any {
+func (s *grpcServerWrapper) Engine() any {
 	return s.server.Server
 }
 
 // RegisterService 实现Server.RegisterService
-func (s *grpcServer) RegisterService(desc interface{}, impl interface{}) Server {
+func (s *grpcServerWrapper) RegisterService(desc interface{}, impl interface{}) Server {
 	// 这里需要根据gRPC的注册方式进行适配
 	// 例如：desc 可能是 *grpc.ServiceDesc，impl 是服务实现
 	if sd, ok := desc.(*grpc.ServiceDesc); ok {
@@ -82,10 +84,10 @@ func (s *grpcServer) RegisterService(desc interface{}, impl interface{}) Server 
 }
 
 // 辅助函数：转换通用选项为gRPC选项
-func convertOptions(opts ...ServerOptions) []gRpc.ServerOptions {
-	serverOpts := make([]gRpc.ServerOptions, 0, len(opts))
+func convertOptions(opts ...ServerOptions) []grpcServer.ServerOptions {
+	serverOpts := make([]grpcServer.ServerOptions, 0, len(opts))
 	for _, opt := range opts {
-		if so, ok := opt.(gRpc.ServerOptions); ok {
+		if so, ok := opt.(grpcServer.ServerOptions); ok {
 			serverOpts = append(serverOpts, so)
 		}
 	}

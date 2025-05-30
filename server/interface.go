@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"net/url"
 
 	"github.com/taluos/Malt/pkg/errors"
 	"github.com/taluos/Malt/pkg/log"
@@ -10,12 +11,33 @@ import (
 	"github.com/taluos/Malt/server/rpc"
 )
 
+var _ Server = (RESTServer)(nil)
+var _ Server = (RPCServer)(nil)
+
 // Server 统一的服务器接口
 type Server interface {
+	// Type 服务器类型
+	Type() string
 	// Start 启动服务器
 	Start(ctx context.Context) error
 	// Stop 停止服务器
 	Stop(ctx context.Context) error
+}
+
+// RESTServer 扩展REST服务器接口
+type RESTServer interface {
+	Server
+	Group(relativePath string, handlers ...any) rest.RouteGroup
+	Use(middleware ...any) rest.Server
+	Handle(httpMethod, relativePath string, handlers ...any) rest.Server
+}
+
+// RPCServer 扩展RPC服务器接口
+type RPCServer interface {
+	Server
+	Endpoint() (*url.URL, error)
+	Engine() any
+	RegisterService(desc any, impl any) rpc.Server
 }
 
 // NewServer 统一的服务器创建函数

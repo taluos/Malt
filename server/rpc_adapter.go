@@ -15,10 +15,10 @@ type rpcServerWrapper struct {
 	serverType string
 }
 
-var _ Server = (*rpcServerWrapper)(nil)
+var _ RPCServer = (*rpcServerWrapper)(nil)
 
 // NewRPCServer 创建RPC服务器
-func newRPCServer(serverType string, opts ...rpc.ServerOptions) (Server, error) {
+func newRPCServer(serverType string, opts ...rpc.ServerOptions) (*rpcServerWrapper, error) {
 	server := rpc.NewServer(serverType, opts...)
 	if server == nil {
 		return nil, errors.New(fmt.Sprintf("[Server] failed to create RPC server with method: %s", serverType))

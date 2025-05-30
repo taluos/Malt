@@ -4,45 +4,49 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v3"
-	httpserver "github.com/taluos/Malt/server/rest/rest-fiber"
+	fiberServer "github.com/taluos/Malt/server/rest/rest-fiber"
 )
 
-type fiberServer struct {
-	app *httpserver.Server
+type fiberServerWrapper struct {
+	app *fiberServer.Server
 }
 
 type fiberRouteGroup struct {
 	group fiber.Router
 }
 
-var _ Server = (*fiberServer)(nil)
+var _ Server = (*fiberServerWrapper)(nil)
 var _ RouteGroup = (*fiberRouteGroup)(nil)
 
 func newFiberServer(opts ...ServerOptions) Server {
 	serverOpts := convertFiberOptions(opts...)
 
 	// 创建服务器
-	app := httpserver.NewServer(serverOpts...)
+	app := fiberServer.NewServer(serverOpts...)
 
-	server := &fiberServer{
+	server := &fiberServerWrapper{
 		app,
 	}
 	return server
 }
 
-func (s *fiberServer) Start(ctx context.Context) error {
+func (s *fiberServerWrapper) Type() string {
+	return "fiber"
+}
+
+func (s *fiberServerWrapper) Start(ctx context.Context) error {
 	return s.app.Start(ctx)
 }
 
-func (s *fiberServer) Stop(ctx context.Context) error {
+func (s *fiberServerWrapper) Stop(ctx context.Context) error {
 	return s.app.Stop(ctx)
 }
 
-func (s *fiberServer) App() any {
+func (s *fiberServerWrapper) App() any {
 	return s.app.App
 }
 
-func (s *fiberServer) Group(relativePath string, handlers ...any) RouteGroup {
+func (s *fiberServerWrapper) Group(relativePath string, handlers ...any) RouteGroup {
 	fiberHandlers := convertToFiberHandlers(handlers...)
 	group := s.app.Group(relativePath, fiberHandlers...)
 	return &fiberRouteGroup{
@@ -50,7 +54,7 @@ func (s *fiberServer) Group(relativePath string, handlers ...any) RouteGroup {
 	}
 }
 
-func (s *fiberServer) Use(middlewares ...any) Server {
+func (s *fiberServerWrapper) Use(middlewares ...any) Server {
 	fiberMiddlewares := convertToFiberHandlers(middlewares...)
 	for _, mw := range fiberMiddlewares {
 		s.app.Use(mw)
@@ -58,7 +62,7 @@ func (s *fiberServer) Use(middlewares ...any) Server {
 	return s
 }
 
-func (s *fiberServer) Handle(httpMethod, relativePath string, handlers ...any) Server {
+func (s *fiberServerWrapper) Handle(httpMethod, relativePath string, handlers ...any) Server {
 	fiberHandlers := convertToFiberHandlers(handlers...)
 	s.app.Add([]string{httpMethod}, relativePath, nil, fiberHandlers...)
 	return s
@@ -155,10 +159,10 @@ func convertToFiberHandlers(handlers ...any) []fiber.Handler {
 }
 
 // 辅助函数：转换通用选项为Fiber选项
-func convertFiberOptions(opts ...ServerOptions) []httpserver.ServerOptions {
-	serverOpts := make([]httpserver.ServerOptions, 0, len(opts))
+func convertFiberOptions(opts ...ServerOptions) []fiberServer.ServerOptions {
+	serverOpts := make([]fiberServer.ServerOptions, 0, len(opts))
 	for _, opt := range opts {
-		if so, ok := opt.(httpserver.ServerOptions); ok {
+		if so, ok := opt.(fiberServer.ServerOptions); ok {
 			serverOpts = append(serverOpts, so)
 		}
 	}

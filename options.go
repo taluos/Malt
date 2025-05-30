@@ -8,8 +8,6 @@ import (
 	"github.com/taluos/Malt/core/registry"
 	"github.com/taluos/Malt/pkg/log"
 	malitServer "github.com/taluos/Malt/server"
-	restserver "github.com/taluos/Malt/server/rest"
-	rpcserver "github.com/taluos/Malt/server/rpc"
 )
 
 type options struct {
@@ -29,8 +27,8 @@ type options struct {
 
 	server []malitServer.Server
 
-	restserver []restserver.Server
-	rpcserver  []rpcserver.Server
+	// restserver []restserver.Server
+	// rpcserver  []rpcserver.Server
 }
 
 type Option func(*options)
@@ -105,6 +103,7 @@ func WithServer(server ...malitServer.Server) Option {
 	}
 }
 
+/*
 func WithRESTServer(restserver ...restserver.Server) Option {
 	return func(o *options) {
 		o.restserver = restserver
@@ -116,3 +115,4 @@ func WithRPCServer(rpcserver ...rpcserver.Server) Option {
 		o.rpcserver = rpcserver
 	}
 }
+*/

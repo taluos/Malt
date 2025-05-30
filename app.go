@@ -122,48 +122,7 @@ func (app *App) Run() error {
 			return server.Start(sctx)
 		})
 	}
-
-	// start Rest Server
-	for _, srv := range app.opts.restserver {
-		server := srv
-		eg.Go(func() error {
-			<-ctx.Done()
-			stopCtx := sctx
-			if app.opts.stopTimeout > 0 {
-				var cancel context.CancelFunc
-				stopCtx, cancel = context.WithTimeout(stopCtx, app.opts.stopTimeout)
-				defer cancel()
-			}
-			return server.Stop(stopCtx)
-		})
-		wg.Add(1)
-		eg.Go(func() error {
-			defer wg.Done()
-			return server.Start(sctx)
-		})
-	}
-
-	// start RPC Server
-	for _, srv := range app.opts.rpcserver {
-		server := srv
-		eg.Go(func() error {
-			<-ctx.Done()
-			stopCtx := sctx
-			if app.opts.stopTimeout > 0 {
-				var cancel context.CancelFunc
-				stopCtx, cancel = context.WithTimeout(stopCtx, app.opts.stopTimeout)
-				defer cancel()
-			}
-			return server.Stop(stopCtx)
-		})
-		wg.Add(1)
-		eg.Go(func() error {
-			defer wg.Done()
-			return server.Start(sctx)
-		})
-	}
-
-	wg.Wait()
+	defer wg.Wait()
 
 	// register service
 	if app.opts.registrar != nil {
@@ -176,6 +135,9 @@ func (app *App) Run() error {
 				return err
 			}
 		}
+		log.Infof("[Malt] register %d service success", len(app.instances))
+	} else {
+		log.Infof("[Malt] register service skip")
 	}
 
 	// 监听退出信号
